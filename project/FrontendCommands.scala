@@ -1,3 +1,4 @@
+
 object FrontendCommands {
   val dependencyInstall: String = "npm install"
   val test: String = "npm run test"

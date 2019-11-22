@@ -8,11 +8,11 @@ target/
 lib_managed/
 src_managed/
 project/boot/
+project/target
 project/plugins/project/
 .history
 .cache
 .lib/
-
 
 ### Scala template
 *.class
