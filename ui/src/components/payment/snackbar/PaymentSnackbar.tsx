@@ -21,8 +21,6 @@ export default class PaymentSnackbar extends Component<Props, {}> {
         this.props.changeOpen(false);
     };
 
-
-
     render(): JSX.Element {
         const snackbarLocation: SnackbarOrigin = {
             vertical: 'bottom',
