@@ -5,7 +5,7 @@
     "jsx": "react",
     "outDir": "build",
     "rootDir": "src",
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   }
