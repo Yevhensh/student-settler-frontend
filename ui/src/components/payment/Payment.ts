@@ -1,56 +1,56 @@
 
 export class Payment {
-    private _name: string;
-    private _surName: string;
-    private _studentNumber: number;
-    private _dormitoryNumber: number;
-    private _room: number;
+    private name: string;
+    private surName: string;
+    private studentNumber: string;
+    private dormitoryNumber: number;
+    private room: string;
 
-    constructor(name: string, surName: string, studentNumber: number, dormitoryNumber: number, room: number) {
-        this._name = name;
-        this._surName = surName;
-        this._studentNumber = studentNumber;
-        this._dormitoryNumber = dormitoryNumber;
-        this._room = room;
+    constructor(name: string, surName: string, studentNumber: string, dormitoryNumber: number, room: string) {
+        this.name = name;
+        this.surName = surName;
+        this.studentNumber = studentNumber;
+        this.dormitoryNumber = dormitoryNumber;
+        this.room = room;
     }
 
-    get name(): string {
-        return this._name;
+    public getName(): string {
+        return this.name;
     }
 
-    set name(value: string) {
-        this._name = value;
+    public setName(value: string) {
+        this.name = value;
     }
 
-    get surName(): string {
-        return this._surName;
+    public getSurName(): string {
+        return this.surName;
     }
 
-    set surName(value: string) {
-        this._surName = value;
+    public setSurName(value: string) {
+        this.surName = value;
     }
 
-    get studentNumber(): number {
-        return this._studentNumber;
+    public getStudentNumber(): string {
+        return this.studentNumber;
     }
 
-    set studentNumber(value: number) {
-        this._studentNumber = value;
+    public setStudentNumber(value: string) {
+        this.studentNumber = value;
     }
 
-    get dormitoryNumber(): number {
-        return this._dormitoryNumber;
+    public getDormitoryNumber(): number {
+        return this.dormitoryNumber;
     }
 
-    set dormitoryNumber(value: number) {
-        this._dormitoryNumber = value;
+    public setDormitoryNumber(value: number) {
+        this.dormitoryNumber = value;
     }
 
-    get room(): number {
-        return this._room;
+    public getRoom(): string {
+        return this.room;
     }
 
-    set room(value: number) {
-        this._room = value;
+    public setRoom(value: string) {
+        this.room = value;
     }
 }

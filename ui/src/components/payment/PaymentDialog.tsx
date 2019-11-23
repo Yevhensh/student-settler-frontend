@@ -25,9 +25,9 @@ enum Duration {
 interface PaymentState {
     name: string,
     surname: string,
-    studentNumber: number,
+    studentNumber: string,
     dormitoryNumber: number,
-    roomNumber: number,
+    roomNumber: string,
     duration: Duration,
     price: number,
     paymentResponseText: string,
@@ -36,13 +36,13 @@ interface PaymentState {
 
 export default class PaymentDialog extends Component<PaymentProps, PaymentState> {
     public state: PaymentState = {
-        name: "test",
-        surname: "test",
-        studentNumber: 2611619234,
-        dormitoryNumber: 1,
-        roomNumber: 2,
+        name: "",
+        surname: "",
+        studentNumber: "",
+        dormitoryNumber: 0,
+        roomNumber: "",
         duration: Duration.HALF_A_YEAR,
-        price: 500,
+        price: 0,
         paymentResponseText: "",
         isSnackbarOpen: false
     };
@@ -51,18 +51,12 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     constructor(props: PaymentProps) {
         super(props);
         this.payService = new PayService();
-        this.changeStudentName = this.changeStudentName.bind(this);
-        this.changeSurname = this.changeSurname.bind(this);
-        this.changeDuration = this.changeDuration.bind(this);
-        this.changeRoomSelect = this.changeRoomSelect.bind(this);
-        this.changeDormitorySelect = this.changeDormitorySelect.bind(this);
-        this.changeStudentNumber = this.changeStudentNumber.bind(this);
         this.payForDormitory = this.payForDormitory.bind(this);
-        this.changeSnackbarOpen = this.changeSnackbarOpen.bind(this);
     }
 
     private async payForDormitory() {
-        const payment = new Payment(this.state.name, this.state.surname, this.state.studentNumber, this.state.dormitoryNumber, this.state.roomNumber);
+        const {name, surname, studentNumber, dormitoryNumber, roomNumber} = this.state;
+        const payment = new Payment(name, surname, studentNumber, dormitoryNumber, roomNumber);
         const paymentResponse = await this.payService.payForDormitory(payment);
         this.setState({
             paymentResponseText: paymentResponse.message,
@@ -71,13 +65,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         setTimeout(() => this.props.toggleModalOpen(), 1500);
     };
 
-    private changeSnackbarOpen(isOpen) {
+    private changeSnackbarOpen = (isOpen: boolean) => {
         this.setState({
             isSnackbarOpen: isOpen
         });
-    }
+    };
 
-    private fetchDurationSelectItems() {
+    private fetchDurationSelectItems = () => {
         const durations = [Duration.HALF_A_YEAR, Duration.YEAR];
         return durations.map(dur => {
             const duration = dur.toString();
@@ -89,27 +83,27 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         });
     };
 
-    private fetchRoomMenuItems() {
-        return [1, 2, 3, 4, 5].map(num => (
+    private fetchRoomMenuItems = () => {
+        return ["1", "2", "3", "4", "5"].map(num => (
             <MenuItem key={num} value={num}>
                 {num}
             </MenuItem>
         ));
-    }
+    };
 
-    private fetchDormMenuItems() {
-        return [1, 2, 3, 4, 5].map(num => (
+    private fetchDormMenuItems = () => {
+        return ["1", "2", "3", "4", "5"].map(num => (
             <MenuItem key={num} value={num}>
                 {num}
             </MenuItem>
         ));
-    }
+    };
 
-    private changeStudentName(event: React.ChangeEvent<HTMLInputElement>) {
+    private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             name: event.target.value
         })
-    }
+    };
 
     private changeSurname(event: React.ChangeEvent<HTMLInputElement>) {
         this.setState({
@@ -125,7 +119,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     }
 
     private changeRoomSelect(event: React.ChangeEvent<HTMLInputElement>) {
-        const roomNumber = parseInt(event.target.value);
+        const roomNumber = event.target.value;
         this.setState({
             roomNumber: roomNumber
         })
@@ -139,27 +133,59 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     }
 
     private changeStudentNumber(event: React.ChangeEvent<HTMLInputElement>) {
-        const studentNumber = parseInt(event.target.value);
+        const studentNumber = event.target.value;
         this.setState({
             studentNumber: studentNumber
         })
     }
 
     private paymentRepsonse() {
-        return this.state.paymentResponseText !== "" ?
-            <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText}/> :
-            <div/>
+        return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
+    }
+
+    private displayPaymentSnackbar() {
+        return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText}/>;
     }
 
     render(): JSX.Element {
         return (
             <div>
-                <Dialog open={this.props.isModalOpen} style={dialogStyles.modal} onClose={this.props.toggleModalOpen} aria-labelledby="form-dialog-title">
+                <Dialog
+                    open={this.props.isModalOpen}
+                    style={dialogStyles.modal}
+                    onClose={this.props.toggleModalOpen}
+                    aria-labelledby="form-dialog-title"
+                >
                     <DialogTitle id="payment-form-title">Payment form</DialogTitle>
                     <DialogContent>
-                        <TextField value={this.state.name} autoFocus={true} margin="dense" id="student-name" label="Name" type="email" fullWidth={true} onChange={this.changeStudentName}/>
-                        <TextField value={this.state.surname} margin="dense" id="student-surname" label="Surname" type="email" fullWidth={true} onChange={this.changeSurname}/>
-                        <TextField value={this.state.studentNumber} margin="dense" id="student-number" label="Stud. Number" type="email" fullWidth={true} onChange={this.changeStudentNumber}/>
+                        <TextField
+                            value={this.state.name}
+                            autoFocus={true}
+                            margin="dense"
+                            id="student-name"
+                            label="Name"
+                            type="email"
+                            fullWidth={true}
+                            onChange={this.changeStudentName}
+                        />
+                        <TextField
+                            value={this.state.surname}
+                            margin="dense"
+                            id="student-surname"
+                            label="Surname"
+                            type="email"
+                            fullWidth={true}
+                            onChange={this.changeSurname}
+                        />
+                        <TextField
+                            value={this.state.studentNumber}
+                            margin="dense"
+                            id="student-number"
+                            label="Stud. Number"
+                            type="email"
+                            fullWidth={true}
+                            onChange={this.changeStudentNumber}
+                        />
                         <TextField
                             value={this.state.dormitoryNumber}
                             id="dormitory-select"

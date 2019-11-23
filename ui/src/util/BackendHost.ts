@@ -1,13 +1,13 @@
+const protocol: string = "http";
+const hostName: string = "localhost";
+const port: string = "8080";
+const contextPath: string = "settler";
 
 export class BackendHost {
-    private protocol: string = "http";
-    private hostName: string = "localhost";
-    private port: string = "8080";
-    private contextPath: string = "settler";
     private url: string;
 
     constructor() {
-        this.url = `${this.protocol}://${this.hostName}:${this.port}/${this.contextPath}`;
+        this.url = `${protocol}://${hostName}:${port}/${contextPath}`;
     }
 
     public getUrl(): string {
