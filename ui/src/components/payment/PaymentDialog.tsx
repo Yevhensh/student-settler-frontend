@@ -105,47 +105,47 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         })
     };
 
-    private changeSurname(event: React.ChangeEvent<HTMLInputElement>) {
+    private changeSurname = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             surname: event.target.value
         })
-    }
+    };
 
-    private changeDuration(event: React.ChangeEvent<HTMLInputElement>) {
+    private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
         const dur = event.target.value == "HALF_A_YEAR" ? Duration.HALF_A_YEAR : Duration.YEAR;
         this.setState({
             duration: dur
         })
-    }
+    };
 
-    private changeRoomSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const roomNumber = event.target.value;
         this.setState({
             roomNumber: roomNumber
         })
     }
 
-    private changeDormitorySelect(event: React.ChangeEvent<HTMLInputElement>) {
+    private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const dormitoryNumber = parseInt(event.target.value);
         this.setState({
             dormitoryNumber: dormitoryNumber
         })
-    }
+    };
 
-    private changeStudentNumber(event: React.ChangeEvent<HTMLInputElement>) {
+    private changeStudentNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
         const studentNumber = event.target.value;
         this.setState({
             studentNumber: studentNumber
         })
-    }
+    };
 
-    private paymentRepsonse() {
+    private paymentRepsonse = () => {
         return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
-    }
+    };
 
-    private displayPaymentSnackbar() {
+    private displayPaymentSnackbar = () => {
         return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText}/>;
-    }
+    };
 
     render(): JSX.Element {
         return (
