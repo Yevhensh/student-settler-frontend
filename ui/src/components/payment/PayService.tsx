@@ -1,19 +1,17 @@
-import {Payment} from "./Payment";
 import axios from 'axios';
+import {PaymentDetails} from "./PaymentDetails";
 import {BackendHost} from "../../util/BackendHost";
 import {PaymentResponse} from "./PaymentResponse";
 
 export class PayService {
-    private backendUrl: string;
+
     private paymentEndpoint: string;
 
-    constructor() {
-        const backendHost = new BackendHost();
-        this.backendUrl = backendHost.getUrl();
-        this.paymentEndpoint = this.backendUrl + "/payment/pay";
+    constructor() { 
+        this.paymentEndpoint = BackendHost.url + "/payment/pay";
     }
 
-    public async payForDormitory(payment: Payment): Promise<PaymentResponse> {
+    public async payForDormitory(payment: PaymentDetails): Promise<PaymentResponse> {
         return axios.post<PaymentResponse>(this.paymentEndpoint, payment).then(res => res.data);
     }
 }

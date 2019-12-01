@@ -9,62 +9,72 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import MenuItem from '@material-ui/core/MenuItem';
 import {dialogStyles} from "../../styles/Styles";
 import {PayService} from "./PayService";
-import {Payment} from "./Payment";
+import {StudentService} from "./StudentService";
+import {PaymentDetails} from "./PaymentDetails";
+import {PaymentDuration} from './PaymentDuration';
 import PaymentSnackbar from "./snackbar/PaymentSnackbar";
+import {PaymentDurationResolver} from './PaymentDurationResolver';
+import {PaymentDurationLabelResolver} from './PaymentDurationLabelResolver';
 
 interface PaymentProps {
     isModalOpen: boolean,
     toggleModalOpen: () => void
 }
 
-enum Duration {
-    HALF_A_YEAR = "HALF_A_YEAR",
-    YEAR = "YEAR"
-}
-
-interface PaymentState {
-    name: string,
-    surname: string,
-    studentNumber: string,
-    dormitoryNumber: number,
-    roomNumber: string,
-    duration: Duration,
-    price: number,
-    paymentResponseText: string,
-    isSnackbarOpen: boolean
-}
-
-export default class PaymentDialog extends Component<PaymentProps, PaymentState> {
-    public state: PaymentState = {
-        name: "",
-        surname: "",
-        studentNumber: "",
-        dormitoryNumber: 0,
-        roomNumber: "",
-        duration: Duration.HALF_A_YEAR,
-        price: 0,
-        paymentResponseText: "",
-        isSnackbarOpen: false
-    };
+export default class PaymentDialog extends Component<PaymentProps> {
     private payService: PayService;
+    private studentService: StudentService;
 
     constructor(props: PaymentProps) {
         super(props);
         this.payService = new PayService();
+        this.studentService = new StudentService();
+
         this.payForDormitory = this.payForDormitory.bind(this);
+        this.isStudentExists = this.isStudentExists.bind(this);
     }
 
+    public state  = {
+        paymentDetails: PaymentDetails.emptyData(),
+        paymentResponseText: '',
+        isSnackbarOpen: false,
+        isStudentExist: true
+    };
+
     private async payForDormitory() {
-        const {name, surname, studentNumber, dormitoryNumber, roomNumber} = this.state;
-        const payment = new Payment(name, surname, studentNumber, dormitoryNumber, roomNumber);
-        const paymentResponse = await this.payService.payForDormitory(payment);
+        if (!this.isStudentExists()) {
+            return;
+        }
+        
+        const paymentResponse = await this.payService.payForDormitory(this.state.paymentDetails);
         this.setState({
             paymentResponseText: paymentResponse.message,
             isSnackbarOpen: true
         });
         setTimeout(() => this.props.toggleModalOpen(), 1500);
     };
+    
+    private async isStudentExists() {
+        const student = this.state.paymentDetails.getStudent();
+        if (!student.isDataFilled()) {
+            return true;
+        }
 
+        const isStudentExist = await this.studentService.isStudentExist(student);
+        if (!isStudentExist) {
+            this.setState({
+                isStudentExist: isStudentExist
+            });
+        }
+        return isStudentExist;
+    }
+
+    private getErrorMessageIfStudentNotExist = () => {
+        return this.state.isStudentExist
+            ? ''
+            : "Student with such Name/SurName/Student's Number not exist.";
+    }
+ 
     private changeSnackbarOpen = (isOpen: boolean) => {
         this.setState({
             isSnackbarOpen: isOpen
@@ -72,12 +82,11 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private fetchDurationSelectItems = () => {
-        const durations = [Duration.HALF_A_YEAR, Duration.YEAR];
-        return durations.map(dur => {
-            const duration = dur.toString();
+        const durations = [PaymentDuration.HALF_YEAR, PaymentDuration.YEAR];
+        return durations.map(duration => {
             return (
                 <MenuItem key={duration} value={duration}>
-                    {duration}
+                    {PaymentDurationLabelResolver.resolve(duration)}
                 </MenuItem>
             )
         });
@@ -100,43 +109,27 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({
-            name: event.target.value
-        })
+        this.state.paymentDetails.getStudent().setName(event.target.value);
     };
 
     private changeSurname = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({
-            surname: event.target.value
-        })
-    };
-
-    private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const dur = event.target.value == "HALF_A_YEAR" ? Duration.HALF_A_YEAR : Duration.YEAR;
-        this.setState({
-            duration: dur
-        })
-    };
-
-    private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const roomNumber = event.target.value;
-        this.setState({
-            roomNumber: roomNumber
-        })
-    }
-
-    private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const dormitoryNumber = parseInt(event.target.value);
-        this.setState({
-            dormitoryNumber: dormitoryNumber
-        })
+        this.state.paymentDetails.getStudent().setSurName(event.target.value);
     };
 
     private changeStudentNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const studentNumber = event.target.value;
-        this.setState({
-            studentNumber: studentNumber
-        })
+        this.state.paymentDetails.getStudent().setStudentNumber(event.target.value);
+    };
+
+    private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.state.paymentDetails.setDuration(PaymentDurationResolver.resolve(event.target.value));
+    };
+
+    private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.state.paymentDetails.setRoomNumber(event.target.value);
+    }
+
+    private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.state.paymentDetails.setDormitoryNumber(Number.parseInt(event.target.value));
     };
 
     private paymentRepsonse = () => {
@@ -159,35 +152,39 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                     <DialogTitle id="payment-form-title">Payment form</DialogTitle>
                     <DialogContent>
                         <TextField
-                            value={this.state.name}
+                            value={this.state.paymentDetails.getStudent().getName()}
                             autoFocus={true}
                             margin="dense"
                             id="student-name"
                             label="Name"
                             type="email"
                             fullWidth={true}
+                            error={!this.state.isStudentExist} 
                             onChange={this.changeStudentName}
                         />
                         <TextField
-                            value={this.state.surname}
+                            value={this.state.paymentDetails.getStudent().getSurName()}
                             margin="dense"
                             id="student-surname"
                             label="Surname"
                             type="email"
                             fullWidth={true}
+                            error={!this.state.isStudentExist} 
                             onChange={this.changeSurname}
                         />
                         <TextField
-                            value={this.state.studentNumber}
+                            value={this.state.paymentDetails.getStudent().getStudentNumber()}
                             margin="dense"
                             id="student-number"
                             label="Stud. Number"
                             type="email"
                             fullWidth={true}
+                            error={!this.state.isStudentExist} 
+                            helperText={this.getErrorMessageIfStudentNotExist()}
                             onChange={this.changeStudentNumber}
                         />
                         <TextField
-                            value={this.state.dormitoryNumber}
+                            value={this.state.paymentDetails.getDormitoryNumber()}
                             id="dormitory-select"
                             select={true}
                             label="Dormitory number"
@@ -198,7 +195,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             {this.fetchDormMenuItems()}
                         </TextField>
                         <TextField
-                            value={this.state.roomNumber}
+                            value={this.state.paymentDetails.getRoomNumber()}
                             id="room-select"
                             select={true}
                             label="Room number"
@@ -209,7 +206,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             {this.fetchRoomMenuItems()}
                         </TextField>
                         <TextField
-                            value={this.state.duration.toString()}
+                            value={this.state.paymentDetails.getDuration()}
                             id="duration"
                             select={true}
                             label="Duration"
@@ -220,7 +217,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             {this.fetchDurationSelectItems()}
                         </TextField>
                         <TextField
-                            value={this.state.price}
+                            value={this.state.paymentDetails.getPrice()}
                             disabled={true}
                             id="calc-price"
                             label="Price"
