@@ -14,7 +14,9 @@ export const homeStyles = {
 
     },
     easyWay: {
-        margin: '180px auto',
+        marginTop: '10vh',
+        marginLeft: ' auto',
+        marginRight: 'auto',
         width: '500px',
         overflow: 'visible',
         textAlign: 'center',
