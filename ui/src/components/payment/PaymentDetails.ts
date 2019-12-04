@@ -6,19 +6,23 @@ export class PaymentDetails {
     private dormitoryNumber: number;
     private roomNumber: string;
     private duration: PaymentDuration;
-    private price: Number;
 
-    constructor(student: Student, dormitoryNumber: number, room: string, duration: PaymentDuration,
-                price: Number) {
+    constructor(student: Student, dormitoryNumber: number, room: string, duration: PaymentDuration) {
         this.student = student;
         this.dormitoryNumber = dormitoryNumber;
         this.roomNumber = room;
         this.duration = duration;
-        this.price = price;
     }
 
     public static emptyData() {
-        return new PaymentDetails(Student.emptyData(), null, null, null, null);
+        return new PaymentDetails(Student.emptyData(), null, null, null);
+    }
+
+    public isDataFilled(): Boolean {
+        return this.student.isDataFilled()
+            && this.dormitoryNumber != null
+            && this.roomNumber != null
+            && this.duration != null
     }
 
     public getStudent(): Student {
@@ -51,13 +55,5 @@ export class PaymentDetails {
 
     public setDuration(value: PaymentDuration) {
         this.duration = value;
-    }
-
-    public getPrice(): Number {
-        return this.price;
-    }
-
-    public setPrice(value: Number) {
-        this.price = value;
     }
 }

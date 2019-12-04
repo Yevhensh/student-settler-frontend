@@ -14,14 +14,24 @@ import {PaymentDetails} from "./PaymentDetails";
 import {PaymentDuration} from './PaymentDuration';
 import PaymentSnackbar from "./snackbar/PaymentSnackbar";
 import {PaymentDurationResolver} from './PaymentDurationResolver';
-import {PaymentDurationLabelResolver} from './PaymentDurationLabelResolver';
+import {StringUtils} from '../../util/StringUtils';
+import { Student } from './Student';
 
 interface PaymentProps {
     isModalOpen: boolean,
     toggleModalOpen: () => void
 }
 
-export default class PaymentDialog extends Component<PaymentProps> {
+interface PaymentState {
+    paymentDetails: PaymentDetails,
+    price: Number,
+    paymentResponseText: String,
+    isSnackbarOpen: Boolean,
+    isStudentPresent: Boolean,
+    isFormFilled: Boolean
+}
+
+export default class PaymentDialog extends Component<PaymentProps, PaymentState> {
     private payService: PayService;
     private studentService: StudentService;
 
@@ -31,48 +41,93 @@ export default class PaymentDialog extends Component<PaymentProps> {
         this.studentService = new StudentService();
 
         this.payForDormitory = this.payForDormitory.bind(this);
-        this.isStudentExists = this.isStudentExists.bind(this);
+        this.isStudentPresent = this.isStudentPresent.bind(this);
     }
 
-    public state  = {
+    public state = {
         paymentDetails: PaymentDetails.emptyData(),
+        price: null,
         paymentResponseText: '',
         isSnackbarOpen: false,
-        isStudentExist: true
+        isStudentPresent: true,
+        isFormFilled: true
     };
 
-    private async payForDormitory() {
-        if (!this.isStudentExists()) {
+    private async payForDormitory() {       
+        if (!this.isFormValid()) {
             return;
         }
         
+        this.doPayAndDisplayResponse();
+    };
+
+    private async doPayAndDisplayResponse() {
         const paymentResponse = await this.payService.payForDormitory(this.state.paymentDetails);
         this.setState({
             paymentResponseText: paymentResponse.message,
             isSnackbarOpen: true
         });
         setTimeout(() => this.props.toggleModalOpen(), 1500);
-    };
-    
-    private async isStudentExists() {
-        const student = this.state.paymentDetails.getStudent();
-        if (!student.isDataFilled()) {
-            return true;
-        }
-
-        const isStudentExist = await this.studentService.isStudentExist(student);
-        if (!isStudentExist) {
-            this.setState({
-                isStudentExist: isStudentExist
-            });
-        }
-        return isStudentExist;
     }
 
-    private getErrorMessageIfStudentNotExist = () => {
-        return this.state.isStudentExist
+    private isFormValid = () => {
+        const isFormFilled = this.updateFormFilledState();
+        const isStudentPresent = this.isStudentPresent();  
+        return isFormFilled && isStudentPresent;
+    }
+
+    private updateFormFilledState = () => {      
+        const isFormFilled = this.state.paymentDetails.isDataFilled();
+        this.setState({
+            isFormFilled: isFormFilled
+        });
+
+        return isFormFilled;
+    }
+    
+    private async isStudentPresent() {
+        return !this.state.paymentDetails.getStudent().isDataFilled()
+            ? this.setStudentPresentStateTrue()
+            : this.updateStudentPresentState();
+    }
+
+    private setStudentPresentStateTrue = () => {
+        this.setState({
+            isStudentPresent: true
+        });
+
+        return true;
+    }
+
+    private async updateStudentPresentState() {
+        const student = this.state.paymentDetails.getStudent();
+        const isStudentPresent = await this.studentService.isStudentPresent(student);
+        this.setState({
+            isStudentPresent: isStudentPresent
+        });
+
+        return isStudentPresent;
+    }
+
+    private getErrorMessageIfStudentNotExist = (value: String) => {
+        const formNotFilledMessage = this.getErrorMessageIfFieldEmpty(value);
+        if (formNotFilledMessage) {
+            return formNotFilledMessage;
+        }
+
+        return this.state.isStudentPresent 
             ? ''
-            : "Student with such Name/SurName/Student's Number not exist.";
+            : "Student with such Name/Surname/Student's Number not exist.";
+    }
+
+    private getErrorMessageIfFieldEmpty = (value: String) => {
+        return !this.isFieldEmpty(value)
+            ? ''
+            : 'This field is required.'
+    }
+
+    private isFieldEmpty = (value: String) => {
+        return !this.state.isFormFilled && StringUtils.isEmpty(value);
     }
  
     private changeSnackbarOpen = (isOpen: boolean) => {
@@ -86,7 +141,7 @@ export default class PaymentDialog extends Component<PaymentProps> {
         return durations.map(duration => {
             return (
                 <MenuItem key={duration} value={duration}>
-                    {PaymentDurationLabelResolver.resolve(duration)}
+                    {PaymentDurationResolver.resolveLabel(duration)}
                 </MenuItem>
             )
         });
@@ -109,27 +164,51 @@ export default class PaymentDialog extends Component<PaymentProps> {
     };
 
     private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.state.paymentDetails.getStudent().setName(event.target.value);
+        event.persist();
+        this.setState((prevState) => {
+            prevState.paymentDetails.getStudent().setName(event.target.value);
+            return prevState;
+        });
     };
 
     private changeSurname = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.state.paymentDetails.getStudent().setSurName(event.target.value);
+        event.persist();
+        this.setState((prevState) => {
+            prevState.paymentDetails.getStudent().setSurName(event.target.value);
+            return prevState;
+        });
     };
 
     private changeStudentNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.state.paymentDetails.getStudent().setStudentNumber(event.target.value);
+        event.persist();
+        this.setState((prevState) => {
+            prevState.paymentDetails.getStudent().setStudentNumber(event.target.value);
+            return prevState;
+        });
     };
 
-    private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.state.paymentDetails.setDuration(PaymentDurationResolver.resolve(event.target.value));
+    private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist();
+        this.setState((prevState) => {
+            prevState.paymentDetails.setDormitoryNumber(Number.parseInt(event.target.value));
+            return prevState;
+        });
     };
 
     private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.state.paymentDetails.setRoomNumber(event.target.value);
+        event.persist();
+        this.setState((prevState) => {
+            prevState.paymentDetails.setRoomNumber(event.target.value);
+            return prevState;
+        });
     }
 
-    private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.state.paymentDetails.setDormitoryNumber(Number.parseInt(event.target.value));
+    private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.persist();
+        this.setState((prevState) => {
+            prevState.paymentDetails.setDuration(PaymentDurationResolver.resolve(event.target.value));
+            return prevState;
+        });
     };
 
     private paymentRepsonse = () => {
@@ -140,7 +219,18 @@ export default class PaymentDialog extends Component<PaymentProps> {
         return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText}/>;
     };
 
+    private emptyIfNull = (value: any): String => {
+        return value ? value.toString() : '';
+    }
+
     render(): JSX.Element {
+        const name = this.emptyIfNull(this.state.paymentDetails.getStudent().getName());
+        const surName = this.emptyIfNull(this.state.paymentDetails.getStudent().getSurName());
+        const studentNumber = this.emptyIfNull(this.state.paymentDetails.getStudent().getStudentNumber());
+        const dormitoryNumber = this.emptyIfNull(this.state.paymentDetails.getDormitoryNumber());
+        const roomNumber = this.emptyIfNull(this.state.paymentDetails.getRoomNumber());
+        const duration = this.emptyIfNull(this.state.paymentDetails.getDuration()); 
+
         return (
             <div>
                 <Dialog
@@ -152,76 +242,89 @@ export default class PaymentDialog extends Component<PaymentProps> {
                     <DialogTitle id="payment-form-title">Payment form</DialogTitle>
                     <DialogContent>
                         <TextField
-                            value={this.state.paymentDetails.getStudent().getName()}
+                            value={name}
                             autoFocus={true}
                             margin="dense"
                             id="student-name"
                             label="Name"
-                            type="email"
+                            type="text"
                             fullWidth={true}
-                            error={!this.state.isStudentExist} 
+                            required={true}
+                            error={!this.state.isStudentPresent || this.isFieldEmpty(name)} 
+                            helperText={this.getErrorMessageIfFieldEmpty(name)}
                             onChange={this.changeStudentName}
                         />
                         <TextField
-                            value={this.state.paymentDetails.getStudent().getSurName()}
+                            value={surName}
                             margin="dense"
                             id="student-surname"
                             label="Surname"
-                            type="email"
+                            type="text"
                             fullWidth={true}
-                            error={!this.state.isStudentExist} 
+                            required={true}
+                            error={!this.state.isStudentPresent || this.isFieldEmpty(surName)} 
+                            helperText={this.getErrorMessageIfFieldEmpty(surName)}
                             onChange={this.changeSurname}
                         />
                         <TextField
-                            value={this.state.paymentDetails.getStudent().getStudentNumber()}
+                            value={studentNumber}
                             margin="dense"
                             id="student-number"
                             label="Stud. Number"
-                            type="email"
+                            type="text"
                             fullWidth={true}
-                            error={!this.state.isStudentExist} 
-                            helperText={this.getErrorMessageIfStudentNotExist()}
+                            required={true}
+                            error={!this.state.isStudentPresent || this.isFieldEmpty(studentNumber)} 
+                            helperText={this.getErrorMessageIfStudentNotExist(studentNumber)}
                             onChange={this.changeStudentNumber}
                         />
                         <TextField
-                            value={this.state.paymentDetails.getDormitoryNumber()}
+                            value={dormitoryNumber}
                             id="dormitory-select"
                             select={true}
                             label="Dormitory number"
                             margin="dense"
                             fullWidth={true}
+                            required={true}
+                            error={this.isFieldEmpty(dormitoryNumber)}
+                            helperText={this.getErrorMessageIfFieldEmpty(dormitoryNumber)}
                             onChange={this.changeDormitorySelect}
                         >
                             {this.fetchDormMenuItems()}
                         </TextField>
                         <TextField
-                            value={this.state.paymentDetails.getRoomNumber()}
+                            value={roomNumber}
                             id="room-select"
                             select={true}
                             label="Room number"
                             margin="normal"
                             fullWidth={true}
+                            required={true}
+                            error={this.isFieldEmpty(roomNumber)}
+                            helperText={this.getErrorMessageIfFieldEmpty(roomNumber)}
                             onChange={this.changeRoomSelect}
                         >
                             {this.fetchRoomMenuItems()}
                         </TextField>
                         <TextField
-                            value={this.state.paymentDetails.getDuration()}
+                            value={duration}
                             id="duration"
                             select={true}
                             label="Duration"
                             margin="normal"
                             fullWidth={true}
+                            required={true}
+                            error={this.isFieldEmpty(duration)}
+                            helperText={this.getErrorMessageIfFieldEmpty(duration)}
                             onChange={this.changeDuration}
                         >
                             {this.fetchDurationSelectItems()}
                         </TextField>
                         <TextField
-                            value={this.state.paymentDetails.getPrice()}
+                            value={this.emptyIfNull(this.state.price)}
                             disabled={true}
                             id="calc-price"
                             label="Price"
-                            defaultValue="40 гривень"
                             margin="normal"
                             fullWidth={true}
                         />
