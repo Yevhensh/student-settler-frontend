@@ -10,7 +10,7 @@ export class StudentService {
         this.studentIsExistEndpoint = BackendHost.url + "/student/isExist";
     }
 
-    public async isStudentExist(student: Student): Promise<Boolean> {
+    public async isStudentPresent(student: Student): Promise<Boolean> {
         // TODO: remove this mock and replace by call to API:
         // axios.post<Boolean>(this.studentIsExistEndpoint, student).then(response => response.data);
         return false;
