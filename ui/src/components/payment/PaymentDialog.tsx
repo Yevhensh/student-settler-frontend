@@ -231,7 +231,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={this.payForDormitory} color="primary">
-                            Pay
+                            Confirm
                         </Button>
                         <Button onClick={this.props.toggleModalOpen} color="secondary">
                             Cancel
