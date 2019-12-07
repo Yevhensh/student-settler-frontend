@@ -1,6 +1,6 @@
 import sbt.Keys.libraryDependencies
 
-name := "money_opt_frontend"
+name := "student-settler-frontend"
 
 version := "1.0"
 

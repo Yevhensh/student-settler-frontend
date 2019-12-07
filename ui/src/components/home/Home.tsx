@@ -34,7 +34,7 @@ export default class Home extends Component<{}, HomeState> {
                 </AppBar>
                 <Typography style={homeStyles.easyWay} variant="h2">Easy way to pay for existence</Typography>
                 <div>
-                    <Button variant="contained" size="large" color="primary" style={homeStyles.payButton} onClick={this.toggleDialog}>Confirm</Button>
+                    <Button variant="contained" size="large" color="primary" style={homeStyles.payButton} onClick={this.toggleDialog}>Pay</Button>
                 </div>
                 <PaymentDialog isModalOpen={this.state.isPaymentModalOpen} toggleModalOpen={this.toggleDialog}/>
             </div>
