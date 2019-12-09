@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -7,15 +7,15 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import MenuItem from '@material-ui/core/MenuItem';
-import {dialogStyles} from "../../styles/Styles";
-import {PayService} from "./PayService";
-import {StudentService} from "./StudentService";
-import {PaymentDetails} from "./PaymentDetails";
-import {PaymentDuration} from './PaymentDuration';
+import { dialogStyles } from "../../styles/Styles";
+import { PayService } from "./PayService";
+import { StudentService } from "./StudentService";
+import { PaymentDetails } from "./PaymentDetails";
+import { PaymentDuration } from './PaymentDuration';
 import PaymentSnackbar from "./snackbar/PaymentSnackbar";
-import {PaymentDurationResolver} from './PaymentDurationResolver';
-import {StringUtils} from '../../util/StringUtils';
-import { Student } from './Student';
+import { PaymentDurationResolver } from './PaymentDurationResolver';
+import { StringUtils } from '../../util/StringUtils';
+import { ValidateDTO } from './ValidateDTO';
 
 interface PaymentProps {
     isModalOpen: boolean,
@@ -25,13 +25,16 @@ interface PaymentProps {
 interface PaymentState {
     paymentDetails: PaymentDetails,
     price: Number,
-    paymentResponseText: String,
+    paymentResponseText: string,
     isSnackbarOpen: Boolean,
     isStudentPresent: Boolean,
+    errorMessageIfStudentNotPresent: string,
     isFormFilled: Boolean
 }
 
 export default class PaymentDialog extends Component<PaymentProps, PaymentState> {
+    private readonly FIELD_IS_REQUIRED_MESSAGE: String = 'This field is required';
+
     private payService: PayService;
     private studentService: StudentService;
 
@@ -50,15 +53,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         paymentResponseText: '',
         isSnackbarOpen: false,
         isStudentPresent: true,
+        errorMessageIfStudentNotPresent: '',
         isFormFilled: true
     };
 
-    private async payForDormitory() {       
-        if (!this.isFormValid()) {
-            return;
-        }
-        
-        this.doPayAndDisplayResponse();
+    private async payForDormitory() {
+        this.isFormValid()
+            .then((valid) => valid && this.doPayAndDisplayResponse());
     };
 
     private async doPayAndDisplayResponse() {
@@ -70,13 +71,17 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         setTimeout(() => this.props.toggleModalOpen(), 1500);
     }
 
-    private isFormValid = () => {
-        const isFormFilled = this.updateFormFilledState();
-        const isStudentPresent = this.isStudentPresent();  
-        return isFormFilled && isStudentPresent;
+    private async isFormValid() {
+        if (!this.updateFormFilledState()) {
+            this.resetStudentPresentState();
+            return false;
+        }
+
+        return this.isStudentPresent()
+            .then(validationResult => this.updateStudentPresentState(validationResult));
     }
 
-    private updateFormFilledState = () => {      
+    private updateFormFilledState = () => {
         const isFormFilled = this.state.paymentDetails.isDataFilled();
         this.setState({
             isFormFilled: isFormFilled
@@ -84,52 +89,49 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
         return isFormFilled;
     }
-    
+
+    private resetStudentPresentState = () => {
+        this.setState({
+            isStudentPresent: true,
+            errorMessageIfStudentNotPresent: ''
+        })
+    }
+
     private async isStudentPresent() {
-        return !this.state.paymentDetails.getStudent().isDataFilled()
-            ? this.setStudentPresentStateTrue()
-            : this.updateStudentPresentState();
-    }
-
-    private setStudentPresentStateTrue = () => {
-        this.setState({
-            isStudentPresent: true
-        });
-
-        return true;
-    }
-
-    private async updateStudentPresentState() {
         const student = this.state.paymentDetails.getStudent();
-        const isStudentPresent = await this.studentService.isStudentPresent(student);
-        this.setState({
-            isStudentPresent: isStudentPresent
-        });
-
-        return isStudentPresent;
+        return await this.studentService.isStudentPresent(student);
     }
 
-    private getErrorMessageIfStudentNotExist = (value: String) => {
+    private updateStudentPresentState = (validationResult: ValidateDTO): boolean => {
+        this.setState({
+            isStudentPresent: validationResult.success,
+            errorMessageIfStudentNotPresent: validationResult.failMessage
+        });
+
+        return validationResult.success;
+    }
+
+    private getErrorMessageIfStudentNotExist = (value: string) => {
         const formNotFilledMessage = this.getErrorMessageIfFieldEmpty(value);
         if (formNotFilledMessage) {
             return formNotFilledMessage;
         }
 
-        return this.state.isStudentPresent 
+        return this.state.isStudentPresent
             ? ''
-            : "Student with such Name/Surname/Student's Number not exist.";
+            : this.state.errorMessageIfStudentNotPresent;
     }
 
-    private getErrorMessageIfFieldEmpty = (value: String) => {
+    private getErrorMessageIfFieldEmpty = (value: string) => {
         return !this.isFieldEmpty(value)
             ? ''
-            : 'This field is required.'
+            : this.FIELD_IS_REQUIRED_MESSAGE;
     }
 
-    private isFieldEmpty = (value: String) => {
+    private isFieldEmpty = (value: string) => {
         return !this.state.isFormFilled && StringUtils.isEmpty(value);
     }
- 
+
     private changeSnackbarOpen = (isOpen: boolean) => {
         this.setState({
             isSnackbarOpen: isOpen
@@ -174,7 +176,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeSurname = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
-            prevState.paymentDetails.getStudent().setSurName(event.target.value);
+            prevState.paymentDetails.getStudent().setSurname(event.target.value);
             return prevState;
         });
     };
@@ -212,24 +214,24 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private paymentRepsonse = () => {
-        return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
+        return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div />;
     };
 
     private displayPaymentSnackbar = () => {
-        return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText}/>;
+        return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText} />;
     };
 
-    private emptyIfNull = (value: any): String => {
+    private emptyIfNull = (value: any): string => {
         return value ? value.toString() : '';
     }
 
     render(): JSX.Element {
         const name = this.emptyIfNull(this.state.paymentDetails.getStudent().getName());
-        const surName = this.emptyIfNull(this.state.paymentDetails.getStudent().getSurName());
+        const surName = this.emptyIfNull(this.state.paymentDetails.getStudent().getSurname());
         const studentNumber = this.emptyIfNull(this.state.paymentDetails.getStudent().getStudentNumber());
         const dormitoryNumber = this.emptyIfNull(this.state.paymentDetails.getDormitoryNumber());
         const roomNumber = this.emptyIfNull(this.state.paymentDetails.getRoomNumber());
-        const duration = this.emptyIfNull(this.state.paymentDetails.getDuration()); 
+        const duration = this.emptyIfNull(this.state.paymentDetails.getDuration());
 
         return (
             <div>
@@ -250,7 +252,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             type="text"
                             fullWidth={true}
                             required={true}
-                            error={!this.state.isStudentPresent || this.isFieldEmpty(name)} 
+                            error={!this.state.isStudentPresent || this.isFieldEmpty(name)}
                             helperText={this.getErrorMessageIfFieldEmpty(name)}
                             onChange={this.changeStudentName}
                         />
@@ -262,7 +264,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             type="text"
                             fullWidth={true}
                             required={true}
-                            error={!this.state.isStudentPresent || this.isFieldEmpty(surName)} 
+                            error={!this.state.isStudentPresent || this.isFieldEmpty(surName)}
                             helperText={this.getErrorMessageIfFieldEmpty(surName)}
                             onChange={this.changeSurname}
                         />
@@ -274,7 +276,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             type="text"
                             fullWidth={true}
                             required={true}
-                            error={!this.state.isStudentPresent || this.isFieldEmpty(studentNumber)} 
+                            error={!this.state.isStudentPresent || this.isFieldEmpty(studentNumber)}
                             helperText={this.getErrorMessageIfStudentNotExist(studentNumber)}
                             onChange={this.changeStudentNumber}
                         />
