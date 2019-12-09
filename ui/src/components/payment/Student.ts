@@ -1,14 +1,14 @@
-import {StringUtils} from '../../util/StringUtils';
+import { StringUtils } from '../../util/StringUtils';
 
 export class Student {
 
-    private name: String
-    private surName: String
-    private studentNumber: String
+    private name: string;
+    private surname: string;
+    private studentNumber: string;
 
-    constructor(name: String, surName:String, studentNumber: String) {
+    constructor(name: string, surname: string, studentNumber: string) {
         this.name = name;
-        this.surName = surName;
+        this.surname = surname;
         this.studentNumber = studentNumber;
     }
 
@@ -16,33 +16,33 @@ export class Student {
         return new Student(null, null, null);
     }
 
-    public setName(value: String) {
-        this.name = value;
-    }
-
-    public getName(): String {
+    public getName(): string {
         return this.name;
     }
 
-    public setSurName(value: String) {
-        this.surName = value;
+    public setName(value: string) {
+        this.name = value;
     }
 
-    public getSurName(): String {
-        return this.surName;
+    public getSurname(): string {
+        return this.surname;
     }
 
-    public setStudentNumber(value: String) {
-        this.studentNumber = value;
+    public setSurname(value: string) {
+        this.surname = value;
     }
 
-    public getStudentNumber(): String {
+    public getStudentNumber(): string {
         return this.studentNumber;
+    }
+
+    public setStudentNumber(value: string) {
+        this.studentNumber = value;
     }
 
     public isDataFilled(): boolean {
         return StringUtils.isNotEmpty(this.name)
-            && StringUtils.isNotEmpty(this.surName)
+            && StringUtils.isNotEmpty(this.surname)
             && StringUtils.isNotEmpty(this.studentNumber);
     }
 }
