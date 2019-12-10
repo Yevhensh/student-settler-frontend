@@ -71,10 +71,10 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         setTimeout(() => this.props.toggleModalOpen(), 1500);
     }
 
-    private async isFormValid() {
+    private isFormValid = (): Promise<boolean> => {
         if (!this.updateFormFilledState()) {
             this.resetStudentPresentState();
-            return false;
+            return Promise.resolve(false);
         }
 
         return this.isStudentPresent()
