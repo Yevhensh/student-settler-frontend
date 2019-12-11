@@ -1,17 +1,16 @@
-import {Student} from './Student';
-import {PaymentDuration} from './PaymentDuration';
+import { Student } from './Student';
 
 export class PaymentDetails {
     private student: Student;
     private dormitoryNumber: number;
     private roomNumber: string;
-    private duration: PaymentDuration;
+    private monthsCount: number;
 
-    constructor(student: Student, dormitoryNumber: number, room: string, duration: PaymentDuration) {
+    constructor(student: Student, dormitoryNumber: number, room: string, monthsCount: number) {
         this.student = student;
         this.dormitoryNumber = dormitoryNumber;
         this.roomNumber = room;
-        this.duration = duration;
+        this.monthsCount = monthsCount;
     }
 
     public static emptyData() {
@@ -22,7 +21,7 @@ export class PaymentDetails {
         return this.student.isDataFilled()
             && this.dormitoryNumber != null
             && this.roomNumber != null
-            && this.duration != null
+            && this.monthsCount != null
     }
 
     public getStudent(): Student {
@@ -49,11 +48,11 @@ export class PaymentDetails {
         this.roomNumber = value;
     }
 
-    public getDuration(): PaymentDuration {
-        return this.duration;
+    public getMonthsCount(): number {
+        return this.monthsCount;
     }
 
-    public setDuration(value: PaymentDuration) {
-        this.duration = value;
+    public setMonthsCount(value: number) {
+        this.monthsCount = value;
     }
 }
