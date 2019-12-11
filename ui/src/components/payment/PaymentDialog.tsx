@@ -11,9 +11,7 @@ import { dialogStyles } from "../../styles/Styles";
 import { PayService } from "./PayService";
 import { StudentService } from "./StudentService";
 import { PaymentDetails } from "./PaymentDetails";
-import { PaymentDuration } from './PaymentDuration';
 import PaymentSnackbar from "./snackbar/PaymentSnackbar";
-import { PaymentDurationResolver } from './PaymentDurationResolver';
 import { StringUtils } from '../../util/StringUtils';
 import { ValidateDTO } from './ValidateDTO';
 
@@ -139,14 +137,11 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private fetchDurationSelectItems = () => {
-        const durations = [PaymentDuration.HALF_YEAR, PaymentDuration.YEAR];
-        return durations.map(duration => {
-            return (
-                <MenuItem key={duration} value={duration}>
-                    {PaymentDurationResolver.resolveLabel(duration)}
-                </MenuItem>
-            )
-        });
+        return ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"].map(num => (
+            <MenuItem key={num} value={num}>
+                {num}
+            </MenuItem>
+        ));
     };
 
     private fetchRoomMenuItems = () => {
@@ -208,7 +203,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
-            prevState.paymentDetails.setDuration(PaymentDurationResolver.resolve(event.target.value));
+            prevState.paymentDetails.setMonthsCount(Number.parseInt(event.target.value));
             return prevState;
         });
     };
@@ -231,7 +226,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         const studentNumber = this.emptyIfNull(this.state.paymentDetails.getStudent().getStudentNumber());
         const dormitoryNumber = this.emptyIfNull(this.state.paymentDetails.getDormitoryNumber());
         const roomNumber = this.emptyIfNull(this.state.paymentDetails.getRoomNumber());
-        const duration = this.emptyIfNull(this.state.paymentDetails.getDuration());
+        const monthsCount = this.emptyIfNull(this.state.paymentDetails.getMonthsCount());
 
         return (
             <div>
@@ -309,15 +304,15 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             {this.fetchRoomMenuItems()}
                         </TextField>
                         <TextField
-                            value={duration}
+                            value={monthsCount}
                             id="duration"
                             select={true}
-                            label="Duration"
+                            label="Amouth of months"
                             margin="normal"
                             fullWidth={true}
                             required={true}
-                            error={this.isFieldEmpty(duration)}
-                            helperText={this.getErrorMessageIfFieldEmpty(duration)}
+                            error={this.isFieldEmpty(monthsCount)}
+                            helperText={this.getErrorMessageIfFieldEmpty(monthsCount)}
                             onChange={this.changeDuration}
                         >
                             {this.fetchDurationSelectItems()}
