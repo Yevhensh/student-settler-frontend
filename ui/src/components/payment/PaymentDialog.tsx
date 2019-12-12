@@ -7,6 +7,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import MenuItem from '@material-ui/core/MenuItem';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import { dialogStyles } from "../../styles/Styles";
 import { PayService } from "./PayService";
 import { StudentService } from "./StudentService";
@@ -153,11 +154,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private fetchDormMenuItems = () => {
-        return ["1", "2", "3", "4", "5"].map(num => (
-            <MenuItem key={num} value={num}>
-                {num}
-            </MenuItem>
-        ));
+        return ["1", "2", "3", "4", "5"];
     };
 
     private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,7 +184,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
-            prevState.paymentDetails.setDormitoryNumber(Number.parseInt(event.target.value));
+            prevState.paymentDetails.setDormitoryNumber(Number.parseInt(event.target.textContent));
             return prevState;
         });
     };
@@ -214,6 +211,21 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private displayPaymentSnackbar = () => {
         return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText} />;
+    };
+
+    private renderDormitoryNumberSelect = (params, dormitoryNumber: string) => {
+        return (
+            <TextField
+                {...params}
+                value={dormitoryNumber}
+                label="Dormitory number"
+                margin="normal"
+                fullWidth={true}
+                required={true}
+                error={this.isFieldEmpty(dormitoryNumber)}
+                helperText={this.getErrorMessageIfFieldEmpty(dormitoryNumber)}
+            />
+        );
     };
 
     private emptyIfNull = (value: any): string => {
@@ -275,20 +287,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             helperText={this.getErrorMessageIfStudentNotExist(studentNumber)}
                             onChange={this.changeStudentNumber}
                         />
-                        <TextField
-                            value={dormitoryNumber}
+                        <Autocomplete
                             id="dormitory-select"
-                            select={true}
-                            label="Dormitory number"
-                            margin="dense"
-                            fullWidth={true}
-                            required={true}
-                            error={this.isFieldEmpty(dormitoryNumber)}
-                            helperText={this.getErrorMessageIfFieldEmpty(dormitoryNumber)}
+                            value={dormitoryNumber}
+                            options={this.fetchDormMenuItems()}
                             onChange={this.changeDormitorySelect}
-                        >
-                            {this.fetchDormMenuItems()}
-                        </TextField>
+                            renderInput={params => this.renderDormitoryNumberSelect(params, dormitoryNumber)}
+                        />
                         <TextField
                             value={roomNumber}
                             id="room-select"
