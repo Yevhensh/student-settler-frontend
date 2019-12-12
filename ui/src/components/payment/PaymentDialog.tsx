@@ -137,12 +137,8 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         });
     };
 
-    private fetchDurationSelectItems = () => {
-        return ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"].map(num => (
-            <MenuItem key={num} value={num}>
-                {num}
-            </MenuItem>
-        ));
+    private fetchMonthsCountItems = () => {
+        return ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
     };
 
     private fetchRoomMenuItems = () => {
@@ -185,12 +181,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         });
     };
 
-    private parseNumberFromAutoselect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        return StringUtils.isNotEmpty(event.target.textContent)
-            ? Number.parseInt(event.target.textContent)
-            : null;
-    }
-
     private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
@@ -199,13 +189,19 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         });
     }
 
-    private changeDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
+    private changeMonthsCount = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
-            prevState.paymentDetails.setMonthsCount(Number.parseInt(event.target.value));
+            prevState.paymentDetails.setMonthsCount(this.parseNumberFromAutoselect(event));
             return prevState;
         });
     };
+
+    private parseNumberFromAutoselect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        return StringUtils.isNotEmpty(event.target.textContent)
+            ? Number.parseInt(event.target.textContent)
+            : null;
+    }
 
     private paymentRepsonse = () => {
         return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div />;
@@ -294,7 +290,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             value={dormitoryNumber}
                             options={this.fetchDormMenuItems()}
                             onChange={this.changeDormitorySelect}
-                            disableClearable={true}
                             renderInput={params => this.renderTextFieldForAutoselect(params, "Dormitory number", dormitoryNumber)}
                         />
                         <Autocomplete
@@ -302,23 +297,15 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             value={roomNumber}
                             options={this.fetchRoomMenuItems()}
                             onChange={this.changeRoomSelect}
-                            disableClearable={true}
                             renderInput={params => this.renderTextFieldForAutoselect(params, "Room number", roomNumber)}
                         />
-                        <TextField
+                        <Autocomplete
+                            id="monthsCount-select"
                             value={monthsCount}
-                            id="duration"
-                            select={true}
-                            label="Amouth of months"
-                            margin="normal"
-                            fullWidth={true}
-                            required={true}
-                            error={this.isFieldEmpty(monthsCount)}
-                            helperText={this.getErrorMessageIfFieldEmpty(monthsCount)}
-                            onChange={this.changeDuration}
-                        >
-                            {this.fetchDurationSelectItems()}
-                        </TextField>
+                            options={this.fetchMonthsCountItems()}
+                            onChange={this.changeMonthsCount}
+                            renderInput={params => this.renderTextFieldForAutoselect(params, "Amount of months", monthsCount)}
+                        />
                         <TextField
                             value={this.emptyIfNull(this.state.price)}
                             disabled={true}
