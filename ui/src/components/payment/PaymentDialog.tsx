@@ -146,11 +146,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private fetchRoomMenuItems = () => {
-        return ["1", "2", "3", "4", "5"].map(num => (
-            <MenuItem key={num} value={num}>
-                {num}
-            </MenuItem>
-        ));
+        return ["1", "2", "3", "4", "5"];
     };
 
     private fetchDormMenuItems = () => {
@@ -184,15 +180,21 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
-            prevState.paymentDetails.setDormitoryNumber(Number.parseInt(event.target.textContent));
+            prevState.paymentDetails.setDormitoryNumber(this.parseNumberFromAutoselect(event));
             return prevState;
         });
     };
 
+    private parseNumberFromAutoselect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        return StringUtils.isNotEmpty(event.target.textContent)
+            ? Number.parseInt(event.target.textContent)
+            : null;
+    }
+
     private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((prevState) => {
-            prevState.paymentDetails.setRoomNumber(event.target.value);
+            prevState.paymentDetails.setRoomNumber(event.target.textContent);
             return prevState;
         });
     }
@@ -213,17 +215,17 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         return <PaymentSnackbar isSnackbarOpen={this.state.isSnackbarOpen} changeOpen={this.changeSnackbarOpen} responseText={this.state.paymentResponseText} />;
     };
 
-    private renderDormitoryNumberSelect = (params, dormitoryNumber: string) => {
+    private renderTextFieldForAutoselect = (params, label: string, value: string) => {
         return (
             <TextField
                 {...params}
-                value={dormitoryNumber}
-                label="Dormitory number"
+                value={value}
+                label={label}
                 margin="normal"
                 fullWidth={true}
                 required={true}
-                error={this.isFieldEmpty(dormitoryNumber)}
-                helperText={this.getErrorMessageIfFieldEmpty(dormitoryNumber)}
+                error={this.isFieldEmpty(value)}
+                helperText={this.getErrorMessageIfFieldEmpty(value)}
             />
         );
     };
@@ -292,22 +294,17 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             value={dormitoryNumber}
                             options={this.fetchDormMenuItems()}
                             onChange={this.changeDormitorySelect}
-                            renderInput={params => this.renderDormitoryNumberSelect(params, dormitoryNumber)}
+                            disableClearable={true}
+                            renderInput={params => this.renderTextFieldForAutoselect(params, "Dormitory number", dormitoryNumber)}
                         />
-                        <TextField
-                            value={roomNumber}
+                        <Autocomplete
                             id="room-select"
-                            select={true}
-                            label="Room number"
-                            margin="normal"
-                            fullWidth={true}
-                            required={true}
-                            error={this.isFieldEmpty(roomNumber)}
-                            helperText={this.getErrorMessageIfFieldEmpty(roomNumber)}
+                            value={roomNumber}
+                            options={this.fetchRoomMenuItems()}
                             onChange={this.changeRoomSelect}
-                        >
-                            {this.fetchRoomMenuItems()}
-                        </TextField>
+                            disableClearable={true}
+                            renderInput={params => this.renderTextFieldForAutoselect(params, "Room number", roomNumber)}
+                        />
                         <TextField
                             value={monthsCount}
                             id="duration"
