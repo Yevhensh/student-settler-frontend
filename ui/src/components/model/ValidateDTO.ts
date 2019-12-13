@@ -1,3 +1,4 @@
+
 export class ValidateDTO {
 
     private _failMessage: string;

@@ -4,7 +4,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import {homeStyles} from "../../styles/Styles";
 import {Button} from "@material-ui/core";
 import Typography from '@material-ui/core/Typography';
-import PaymentDialog from "../payment/PaymentDialog";
+import PaymentDialog from "../payment/payment-dialog/PaymentDialog";
 
 interface HomeState {
     isPaymentModalOpen: boolean
@@ -18,9 +18,9 @@ export default class Home extends Component<{}, HomeState> {
         };
     }
 
-    toggleDialog = () => {
+    toggleDialog = (isOpen: boolean) => {
         this.setState({
-            isPaymentModalOpen: !this.state.isPaymentModalOpen
+            isPaymentModalOpen: isOpen
         });
     };
 
@@ -34,7 +34,7 @@ export default class Home extends Component<{}, HomeState> {
                 </AppBar>
                 <Typography style={homeStyles.easyWay} variant="h2">Easy way to pay for existence</Typography>
                 <div>
-                    <Button variant="contained" size="large" color="primary" style={homeStyles.payButton} onClick={this.toggleDialog}>Pay</Button>
+                    <Button variant="contained" size="large" color="primary" style={homeStyles.payButton} onClick={() => this.toggleDialog(true)}>Pay</Button>
                 </div>
                 <PaymentDialog isModalOpen={this.state.isPaymentModalOpen} toggleModalOpen={this.toggleDialog}/>
             </div>
