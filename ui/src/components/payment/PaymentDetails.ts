@@ -1,58 +1,71 @@
-import { Student } from './Student';
+import { Student } from '../model/Student';
+import {StringUtils} from "../../util/StringUtils";
 
 export class PaymentDetails {
-    private student: Student;
-    private dormitoryNumber: number;
-    private roomNumber: string;
-    private monthsCount: number;
+    private _student: Student;
+    private _dormitoryNumber: number;
+    private _roomNumber: string;
+    private _monthsCount: number;
 
     constructor(student: Student, dormitoryNumber: number, room: string, monthsCount: number) {
-        this.student = student;
-        this.dormitoryNumber = dormitoryNumber;
-        this.roomNumber = room;
-        this.monthsCount = monthsCount;
+        this._student = student;
+        this._dormitoryNumber = dormitoryNumber;
+        this._roomNumber = room;
+        this._monthsCount = monthsCount;
     }
 
     public static emptyData() {
         return new PaymentDetails(Student.emptyData(), null, null, null);
     }
 
-    public isDataFilled(): Boolean {
-        return this.student.isDataFilled()
-            && this.dormitoryNumber != null
-            && this.roomNumber != null
-            && this.monthsCount != null
+    public emptyDataIfNull() {
+        this._student.emptyDataIfNull();
+        if (!this.dormitoryNumber) {
+            this.dormitoryNumber = 0;
+        }
+        if (!this.monthsCount) {
+            this.monthsCount = 0;
+        }
+        this.roomNumber = StringUtils.emptyIfNull(this._roomNumber);
     }
 
-    public getStudent(): Student {
-        return this.student;
+    public isDataFilled(): boolean {
+        return this._student.isDataFilled()
+            && this._dormitoryNumber != null
+            && this._roomNumber != null
+            && this._monthsCount != null
     }
 
-    public setStudent(value: Student) {
-        this.student = value;
+
+    get student(): Student {
+        return this._student;
     }
 
-    public getDormitoryNumber(): number {
-        return this.dormitoryNumber;
+    set student(value: Student) {
+        this._student = value;
     }
 
-    public setDormitoryNumber(value: number) {
-        this.dormitoryNumber = value;
+    get dormitoryNumber(): number {
+        return this._dormitoryNumber;
     }
 
-    public getRoomNumber(): string {
-        return this.roomNumber;
+    set dormitoryNumber(value: number) {
+        this._dormitoryNumber = value;
     }
 
-    public setRoomNumber(value: string) {
-        this.roomNumber = value;
+    get roomNumber(): string {
+        return this._roomNumber;
     }
 
-    public getMonthsCount(): number {
-        return this.monthsCount;
+    set roomNumber(value: string) {
+        this._roomNumber = value;
     }
 
-    public setMonthsCount(value: number) {
-        this.monthsCount = value;
+    get monthsCount(): number {
+        return this._monthsCount;
+    }
+
+    set monthsCount(value: number) {
+        this._monthsCount = value;
     }
 }

@@ -1,7 +1,7 @@
 import axios from 'axios';
-import {PaymentDetails} from "./PaymentDetails";
+import {PaymentDetails} from "../payment/PaymentDetails";
 import {BackendHost} from "../../util/BackendHost";
-import {PaymentResponse} from "./PaymentResponse";
+import {PaymentResponse} from "../payment/PaymentResponse";
 
 export class PayService {
 
