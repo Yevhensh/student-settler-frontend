@@ -290,8 +290,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         paymentDetailsCopy.emptyDataIfNull();
         const {student, dormitory, roomNumber, monthsCount} = paymentDetailsCopy;
         const {name, surname, studentNumber} = student;
-        const {studentNameTf, studentSurnameTf, studentNumberTf, dormitorySelectTf, roomSelectTf, monthCountSelectTf} =
-            this.formTextFields(name, surname, studentNumber, dormitory, roomNumber, monthsCount);
+        const textFields = this.formTextFields(name, surname, studentNumber, dormitory, roomNumber, monthsCount);
         return (
             <div>
                 <Dialog
@@ -302,12 +301,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                 >
                     <DialogTitle id="payment-form-title">Payment form</DialogTitle>
                     <DialogContent>
-                        {studentNameTf}
-                        {studentSurnameTf}
-                        {studentNumberTf}
-                        {dormitorySelectTf}
-                        {roomSelectTf}
-                        {monthCountSelectTf}
+                        {textFields}
                         <TextField
                             value={StringUtils.emptyIfNull(this.state.price)}
                             disabled={true}
@@ -340,6 +334,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         const roomSelectTf = this.formAutocomplete("room-select", roomNumber, "Room number", this.fetchRooms(), this.changeRoomSelect);
         const monthCountSelectTf = this.formAutocomplete("monthsCount-select", StringUtils.ofNumberOrNull(monthsCount),
             "Amount of months", this.fetchMonthsCountItems(), this.changeMonthsCount);
-        return {studentNameTf, studentSurnameTf, studentNumberTf, dormitorySelectTf, roomSelectTf, monthCountSelectTf};
+        return [studentNameTf, studentSurnameTf, studentNumberTf, dormitorySelectTf, roomSelectTf, monthCountSelectTf];
     }
 }
