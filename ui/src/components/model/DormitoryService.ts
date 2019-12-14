@@ -6,7 +6,7 @@ import Room from "./Room";
 export default class DormitoryService {
 
     private dormitoryFetchEndpoint: string;
-    private roomFetchEndpoint: (s: number) => string;
+    private roomFetchEndpoint: (dormitoryId: number) => string;
 
     constructor() {
         this.dormitoryFetchEndpoint = `${BackendHost.url}/dormitories`;
