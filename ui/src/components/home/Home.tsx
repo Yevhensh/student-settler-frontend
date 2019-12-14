@@ -36,7 +36,7 @@ export default class Home extends Component<{}, HomeState> {
                 <div>
                     <Button variant="contained" size="large" color="primary" style={homeStyles.payButton} onClick={() => this.toggleDialog(true)}>Pay</Button>
                 </div>
-                <PaymentDialog isModalOpen={this.state.isPaymentModalOpen} toggleModalOpen={this.toggleDialog}/>
+                {this.state.isPaymentModalOpen ? <PaymentDialog isModalOpen={this.state.isPaymentModalOpen} toggleModalOpen={this.toggleDialog}/> : null}
             </div>
         );
     }
