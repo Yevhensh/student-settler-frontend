@@ -150,12 +150,10 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private populateRooms = async () => {
         const dormitory = this.state.paymentDetails.dormitory;
-        if (ObjectUtils.checkNotNull(dormitory)) {
-            const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
-            this.setState({
-                rooms: rooms
-            })
-        }
+        const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
+        this.setState({
+            rooms: rooms
+        });
     };
 
     private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,8 +186,16 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
             state.paymentDetails.dormitory = this.state.dormitories.find(dormitory => dormitory.number.toString() == event.target.textContent);
             return state;
         }, () => {
-            this.populateRooms();
-            this.changePrice(this.state.paymentDetails.dormitory.pricePerMonth.price);
+            if (ObjectUtils.checkNotNull(this.state.paymentDetails.dormitory)) {
+                this.populateRooms();
+                this.changePrice(this.state.paymentDetails.dormitory.pricePerMonth.price);
+            } else {
+                this.setState((state) => {
+                    state = {...state, rooms: []};
+                    state.paymentDetails.roomNumber = "";
+                    return state;
+                })
+            }
         });
     };
 
@@ -217,7 +223,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
     };
 
-    private changePrice(price: number) {
+    private changePrice = (price: number) => {
         this.setState({
             pricePerMonth: price
         })
@@ -282,7 +288,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private calculatePrice = () => {
-        if (ObjectUtils.checkNotNull(this.state.pricePerMonth)) {
+        if (!ObjectUtils.checkNotNull(this.state.pricePerMonth)) {
             return "";
         }
         const monthsCount = this.state.paymentDetails.monthsCount;
