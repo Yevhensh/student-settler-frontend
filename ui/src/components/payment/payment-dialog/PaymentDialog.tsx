@@ -46,7 +46,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private static formEmptyData(): PaymentState {
         return {
             paymentDetails: PaymentDetails.emptyData(),
-            price: null,
+            pricePerMonth: null,
             paymentResponseText: '',
             isSnackbarOpen: false,
             isStudentPresent: true,
@@ -225,7 +225,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private changePrice(price: number) {
         this.setState({
-            price: price
+            pricePerMonth: price
         })
     };
 
@@ -285,6 +285,14 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         );
     };
 
+    private calculatePrice = () => {
+        if (this.state.pricePerMonth == null) {
+            return "";
+        }
+        const monthsCount = this.state.paymentDetails.monthsCount;
+        return (monthsCount ? monthsCount : 1) * this.state.pricePerMonth;
+    };
+
     render(): JSX.Element {
         const paymentDetailsCopy: PaymentDetails = Object.create(this.state.paymentDetails);
         paymentDetailsCopy.emptyDataIfNull();
@@ -303,7 +311,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                     <DialogContent>
                         {textFields}
                         <TextField
-                            value={StringUtils.emptyIfNull(this.state.price)}
+                            value={this.calculatePrice()}
                             disabled={true}
                             id="calc-price"
                             label="Price"
