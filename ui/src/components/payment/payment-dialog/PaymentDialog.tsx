@@ -16,23 +16,31 @@ import {StringUtils} from '../../../util/StringUtils';
 import {ValidateDTO} from '../../model/ValidateDTO';
 import {PaymentState} from "./PaymentState";
 import {PaymentProps} from "./PaymentProps";
+import DormitoryService from "../../model/DormitoryService";
+import ObjectUtils from "../../../util/ObjectUtils";
 
 export default class PaymentDialog extends Component<PaymentProps, PaymentState> {
     private readonly FIELD_IS_REQUIRED_MESSAGE: string = 'This field is required';
 
     private payService: PayService;
+    private dormitoryService: DormitoryService;
     private studentService: StudentService;
 
     constructor(props: PaymentProps) {
         super(props);
         this.payService = new PayService();
+        this.dormitoryService = new DormitoryService();
         this.studentService = new StudentService();
     }
 
     public state: PaymentState = PaymentDialog.formEmptyData();
 
-    public componentDidMount() {
-        this.setState(PaymentDialog.formEmptyData());
+    public async componentDidMount() {
+        this.reinitializeData();
+        const dormitories = await this.dormitoryService.fetchDormitories();
+        this.setState({
+            dormitories: dormitories
+        });
     }
 
     private static formEmptyData(): PaymentState {
@@ -43,11 +51,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
             isSnackbarOpen: false,
             isStudentPresent: true,
             errorMessageIfStudentNotPresent: '',
+            dormitories: [],
+            rooms: [],
             isFormFilled: true
         }
     };
 
-    private emptyData = () => {
+    private reinitializeData = () => {
         this.setState(PaymentDialog.formEmptyData())
     };
 
@@ -66,7 +76,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private closeModal = () => {
         this.props.toggleModalOpen(false);
-        this.emptyData();
     };
 
     private isFormValid = async () => {
@@ -130,15 +139,29 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private fetchMonthsCountItems = () => {
-        return ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+        let months = [];
+        for (let i = 1; i < 10; i++) {
+            months.push(i.toString())
+        }
+        return months;
     };
 
-    private fetchRoomMenuItems = () => {
-        return ["1", "2", "3", "4", "5"];
+    private populateRooms = async () => {
+        const dormitory = this.state.paymentDetails.dormitory;
+        if (ObjectUtils.checkNotNull(dormitory)) {
+            const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
+            this.setState({
+                rooms: rooms
+            })
+        }
     };
 
-    private fetchDormMenuItems = () => {
-        return ["1", "2", "3", "4", "5"];
+    private fetchRooms = () => {
+        return this.state.rooms.map(room => room.title);
+    };
+
+    private fetchDormitories = () => {
+        return this.state.dormitories.map(dormitory => dormitory.number.toString());
     };
 
     private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,8 +191,11 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((state) => {
-            state.paymentDetails.dormitoryNumber = this.parseNumberFromAutoselect(event);
+            state.paymentDetails.dormitory = this.state.dormitories.find(dormitory => dormitory.number.toString() == event.target.textContent);
             return state;
+        }, () => {
+            this.populateRooms();
+            this.changePrice(this.state.paymentDetails.dormitory.pricePerMonth.price);
         });
     };
 
@@ -195,6 +221,12 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private paymentRepsonse = () => {
         return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
+    };
+
+    private changePrice(price: number) {
+        this.setState({
+            price: price
+        })
     };
 
     private displayPaymentSnackbar = () => {
@@ -253,14 +285,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         );
     };
 
-
     render(): JSX.Element {
         const paymentDetailsCopy: PaymentDetails = Object.create(this.state.paymentDetails);
         paymentDetailsCopy.emptyDataIfNull();
-        const {student, dormitoryNumber, roomNumber, monthsCount} = paymentDetailsCopy;
+        const {student, dormitory, roomNumber, monthsCount} = paymentDetailsCopy;
         const {name, surname, studentNumber} = student;
         const {studentNameTf, studentSurnameTf, studentNumberTf, dormitorySelectTf, roomSelectTf, monthCountSelectTf} =
-            this.formTextFields(name, surname, studentNumber, dormitoryNumber, roomNumber, monthsCount);
+            this.formTextFields(name, surname, studentNumber, dormitory, roomNumber, monthsCount);
         return (
             <div>
                 <Dialog
@@ -305,8 +336,8 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         const studentSurnameTf = this.formTextField(surname, "student-surname", "Surname", this.getErrorMessageIfFieldEmpty, this.changeSurname);
         const studentNumberTf = this.formTextField(studentNumber, "student-number", "Stud. Number", this.formErrorMessage, this.changeStudentNumber);
         const dormitorySelectTf = this.formAutocomplete("dormitory-select", StringUtils.ofNumberOrNull(dormitoryNumber), "Dormitory number",
-            this.fetchDormMenuItems(), this.changeDormitorySelect);
-        const roomSelectTf = this.formAutocomplete("room-select", roomNumber, "Room number", this.fetchRoomMenuItems(), this.changeRoomSelect);
+            this.fetchDormitories(), this.changeDormitorySelect);
+        const roomSelectTf = this.formAutocomplete("room-select", roomNumber, "Room number", this.fetchRooms(), this.changeRoomSelect);
         const monthCountSelectTf = this.formAutocomplete("monthsCount-select", StringUtils.ofNumberOrNull(monthsCount),
             "Amount of months", this.fetchMonthsCountItems(), this.changeMonthsCount);
         return {studentNameTf, studentSurnameTf, studentNumberTf, dormitorySelectTf, roomSelectTf, monthCountSelectTf};
