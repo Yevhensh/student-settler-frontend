@@ -10,7 +10,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import {dialogStyles} from "../../../styles/Styles";
 import {PayService} from "../../model/PayService";
 import {StudentService} from "../../model/StudentService";
-import {PaymentDetails} from "../PaymentDetails";
+import {StudentDetails} from "../StudentDetails";
 import PaymentSnackbar from "../snackbar/PaymentSnackbar";
 import {StringUtils} from '../../../util/StringUtils';
 import {ValidateDTO} from '../../model/ValidateDTO';
@@ -20,6 +20,7 @@ import DormitoryService from "../../model/DormitoryService";
 import ObjectUtils from "../../../util/ObjectUtils";
 import Dormitory from "../../model/Dormitory";
 import Room from "../../model/Room";
+import ChangeLinkButton from "./ChangeLinkButton";
 
 export default class PaymentDialog extends Component<PaymentProps, PaymentState> {
     private readonly FIELD_IS_REQUIRED_MESSAGE: string = 'This field is required';
@@ -47,7 +48,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private static formEmptyData(): PaymentState {
         return {
-            paymentDetails: PaymentDetails.emptyData(),
+            studentDetails: StudentDetails.emptyData(),
             paymentResponseText: '',
             isSnackbarOpen: false,
             isStudentPresent: true,
@@ -60,19 +61,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private reinitializeData = () => {
         this.setState(PaymentDialog.formEmptyData())
-    };
-
-    private payForDormitory = async () => {
-        this.isFormValid().then((valid) => valid && this.doPayAndDisplayResponse());
-    };
-
-    private doPayAndDisplayResponse = async () => {
-        const paymentResponse = await this.payService.payForDormitory(this.state.paymentDetails);
-        this.setState({
-            paymentResponseText: paymentResponse.message,
-            isSnackbarOpen: true
-        });
-        setTimeout(() => this.closeModal(), 1500);
     };
 
     private closeModal = () => {
@@ -89,7 +77,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private updateFormFilledState = () => {
-        const isFormFilled = this.state.paymentDetails.isDataFilled();
+        const isFormFilled = this.state.studentDetails.isDataFilled();
         this.setState({
             isFormFilled: isFormFilled
         });
@@ -104,7 +92,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private isStudentPresent = async () => {
-        const student = this.state.paymentDetails.student;
+        const student = this.state.studentDetails.student;
         return await this.studentService.isStudentPresent(student);
     };
 
@@ -148,7 +136,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private populateRooms = async () => {
-        const dormitory = this.state.paymentDetails.dormitory;
+        const dormitory = this.state.studentDetails.dormitory;
         if (!ObjectUtils.checkNotNull(dormitory)) {
             return [];
         }
@@ -161,7 +149,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeTextValue = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = event.target;
         this.setState((state) => {
-            state.paymentDetails.student[name] = value;
+            state.studentDetails.student[name] = value;
             return state;
         });
     };
@@ -169,10 +157,10 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeDormitorySelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((state) => {
-            state.paymentDetails.dormitory = this.state.dormitories.find(dormitory => dormitory.number.toString() == event.target.textContent);
-            if (!ObjectUtils.checkNotNull(state.paymentDetails.dormitory)) {
+            state.studentDetails.dormitory = this.state.dormitories.find(dormitory => dormitory.number.toString() == event.target.textContent);
+            if (!ObjectUtils.checkNotNull(state.studentDetails.dormitory)) {
                 state = {...state, rooms: []};
-                state.paymentDetails.roomNumber = "";
+                state.studentDetails.roomNumber = "";
             }
             return state;
         }, () => {
@@ -183,7 +171,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeRoomSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((state) => {
-            state.paymentDetails.roomNumber = event.target.textContent;
+            state.studentDetails.roomNumber = event.target.textContent;
             return state;
         });
     };
@@ -191,7 +179,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private changeMonthsCount = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((state) => {
-            state.paymentDetails.monthsCount = this.parseNumberFromAutoselect(event);
+            state.studentDetails.monthsCount = this.parseNumberFromAutoselect(event);
             return state;
         });
     };
@@ -263,19 +251,19 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private calculatePrice = () => {
-        const dormitory = this.state.paymentDetails.dormitory;
+        const dormitory = this.state.studentDetails.dormitory;
         if (!ObjectUtils.checkNotNull(dormitory)) {
             return "";
         }
         const pricePerMonth = dormitory.pricePerMonth.price;
-        const monthsCount = this.state.paymentDetails.monthsCount;
+        const monthsCount = this.state.studentDetails.monthsCount;
         return (monthsCount ? monthsCount : 1) * pricePerMonth;
     };
 
     render(): JSX.Element {
-        const paymentDetails: PaymentDetails = this.state.paymentDetails;
-        paymentDetails.emptyDataIfNull();
-        const {student, dormitory, roomNumber, monthsCount} = paymentDetails;
+        const studentDetailsCopy: StudentDetails = this.state.studentDetails;
+        studentDetailsCopy.emptyDataIfNull();
+        const {student, dormitory, roomNumber, monthsCount} = studentDetailsCopy;
         const {name, surname, studentNumber} = student;
         const textFields = this.formTextFields(name, surname, studentNumber, dormitory, roomNumber, monthsCount);
         return (
@@ -299,9 +287,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                         />
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={this.payForDormitory} color="primary">
-                            Confirm
-                        </Button>
+                        <ChangeLinkButton
+                            preconditionFunction={this.isFormValid}
+                            link="/payment/card-details"
+                            color="primary"
+                            buttonName="Confirm"
+                            state={this.state.studentDetails}
+                        />
                         <Button onClick={this.closeModal} color="secondary">
                             Cancel
                         </Button>
