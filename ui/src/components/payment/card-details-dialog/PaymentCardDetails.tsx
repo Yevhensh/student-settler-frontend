@@ -16,7 +16,7 @@ import CardDetails from "../CardDetails";
 import {PaymentDetails} from "../PaymentDetails";
 import {LocationDescriptorObject} from "history";
 
-export interface PaymentCardDetailsProps {
+interface PaymentCardDetailsProps {
     location: LocationDescriptorObject
 }
 
@@ -95,20 +95,37 @@ export default class PaymentCardDetails extends Component<PaymentCardDetailsProp
 
     private validateAndParseExpirationDate = (value: string) => {
         const date = this.validateNumberAndSlice(value, 4);
-        if (date.length == 0 || (date.charAt(0) != '0' && date.charAt(0) != '1')) {
+        if (this.isMonthStartsWithNotValidNumber(date)) {
             return '';
         }
-        if (date.charAt(0) == '0' && date.charAt(1) == '0') {
+        if (this.isDateValidIfMonthStartsWithZero(date)) {
             return '0';
         }
-        if (date.charAt(0) == '1' && date.charAt(1) != '0' && date.charAt(1) != '1' && date.charAt(1) != '2') {
+        if (this.isDateValidIfMonthStartsWithOne(date)) {
             return '1';
         }
-        if (date.length == 4 && date.charAt(3) == '0') {
-            return date.slice(0, 3);
-        }
 
-        return date;
+        return this.isNotZeroYear(date)
+            ? date.slice(0, 3)
+            : date;
+    };
+
+    private isMonthStartsWithNotValidNumber = (date: string): boolean => {
+        return date.charAt(0) != '0' && date.charAt(0) != '1';
+    };
+
+    private isDateValidIfMonthStartsWithZero = (date: string): boolean => {
+        return date.charAt(0) == '0' && date.charAt(1) == '0';
+    };
+
+    private isDateValidIfMonthStartsWithOne = (date: string): boolean => {
+        const start = date.charAt(0);
+        const end = date.charAt(1);
+        return start == '1' && end != '0' && end != '1' && end != '2';
+    };
+
+    private isNotZeroYear = (date: string): boolean => {
+        return date.length == 4 && date.charAt(3) == '0';
     };
 
     private payForDormitory = async () => {
