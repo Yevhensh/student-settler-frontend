@@ -119,19 +119,19 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private formErrorMessage = (value: string) => {
-        const formNotFilledMessage = this.getErrorMessageIfFieldEmpty(value);
+        const formNotFilledMessage = this.getErrorMessageIfTextFieldBlank(value);
         if (formNotFilledMessage) {
             return formNotFilledMessage;
         }
         return this.state.isStudentPresent ? '' : this.state.errorMessageIfStudentNotPresent;
     };
 
-    private getErrorMessageIfFieldEmpty = (value: string) => {
-        return !this.isFieldEmpty(value) ? '' : this.FIELD_IS_REQUIRED_MESSAGE;
+    private getErrorMessageIfTextFieldBlank = (value: string) => {
+        return !this.isTextFieldBlank(value) ? '' : this.FIELD_IS_REQUIRED_MESSAGE;
     };
 
-    private isFieldEmpty = (value: string) => {
-        return !this.state.isFormFilled && StringUtils.isEmpty(value);
+    private isTextFieldBlank = (value: string) => {
+        return !this.state.isFormFilled && StringUtils.isBlank(value);
     };
 
     private changeSnackbarOpen = (isOpen: boolean) => {
@@ -156,26 +156,10 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         });
     };
 
-    private changeStudentName = (event: React.ChangeEvent<HTMLInputElement>) => {
-        event.persist();
-        this.setState((prevState) => {
-            prevState.paymentDetails.student.name = event.target.value;
-            return prevState;
-        });
-    };
-
-    private changeSurname = (event: React.ChangeEvent<HTMLInputElement>) => {
-        event.persist();
-        this.setState((prevState) => {
-            prevState.paymentDetails.student.surname = event.target.value;
-            return prevState;
-        });
-    };
-
-    private changeStudentNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
-        event.persist();
+    private changeTextValue = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const {name, value} = event.target;
         this.setState((state) => {
-            state.paymentDetails.student.studentNumber = event.target.value;
+            state.paymentDetails.student[name] = value;
             return state;
         });
     };
@@ -248,24 +232,25 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                 margin="normal"
                 fullWidth={true}
                 required={true}
-                error={this.isFieldEmpty(value)}
-                helperText={this.getErrorMessageIfFieldEmpty(value)}
+                error={this.isTextFieldBlank(value)}
+                helperText={this.getErrorMessageIfTextFieldBlank(value)}
             />
         );
     };
 
-    private formTextField = (tfValue: string, tfIdentifier: string, tfLabel: string, formHelperText: (s: string) => string,
+    private formTextField = (name: string, tfValue: string, tfIdentifier: string, tfLabel: string, formHelperText: (s: string) => string,
                              onChangeHandler: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
         return (
             <TextField
                 value={tfValue}
                 margin="dense"
                 id={tfIdentifier}
+                name={name}
                 label={tfLabel}
                 type="text"
                 fullWidth={true}
                 required={true}
-                error={!this.state.isStudentPresent || this.isFieldEmpty(tfValue)}
+                error={!this.state.isStudentPresent || this.isTextFieldBlank(tfValue)}
                 helperText={formHelperText(tfValue)}
                 onChange={onChangeHandler}
             />
@@ -335,9 +320,9 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     }
 
     private formTextFields(name, surname, studentNumber, dormitoryNumber, roomNumber, monthsCount) {
-        const studentNameField = this.formTextField(name, "student-name", "Name", this.getErrorMessageIfFieldEmpty, this.changeStudentName);
-        const studentSurnameField = this.formTextField(surname, "student-surname", "Surname", this.getErrorMessageIfFieldEmpty, this.changeSurname);
-        const studentNumberField = this.formTextField(studentNumber, "student-number", "Stud. Number", this.formErrorMessage, this.changeStudentNumber);
+        const studentNameField = this.formTextField("name", name, "student-name", "Name", this.getErrorMessageIfTextFieldBlank, this.changeTextValue);
+        const studentSurnameField = this.formTextField("surname", surname, "student-surname", "Surname", this.getErrorMessageIfTextFieldBlank, this.changeTextValue);
+        const studentNumberField = this.formTextField("studentNumber", studentNumber, "student-number", "Stud. Number", this.formErrorMessage, this.changeTextValue);
         const dormitorySelectField = this.formAutocomplete("dormitory-select", StringUtils.ofNumberOrNull(dormitoryNumber),
             "Dormitory number", this.state.dormitories, (dormitory: Dormitory) => dormitory.number.toString(), this.changeDormitorySelect);
         const roomSelectField = this.formAutocomplete("room-select", roomNumber, "Room number", this.state.rooms,
