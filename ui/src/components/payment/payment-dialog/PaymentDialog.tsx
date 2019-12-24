@@ -259,7 +259,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         return (
             <TextField
                 value={tfValue}
-                autoFocus={true}
                 margin="dense"
                 id={tfIdentifier}
                 label={tfLabel}
