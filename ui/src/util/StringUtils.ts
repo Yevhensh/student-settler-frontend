@@ -8,6 +8,14 @@ export class StringUtils {
         return !value || value.length === 0;
     }
 
+    public static isNotBlank(value: string): boolean {
+        return StringUtils.isNotEmpty(value) && value.trim().length > 0;
+    }
+
+    public static isBlank(value: string): boolean {
+        return !StringUtils.isNotBlank(value);
+    }
+
     public static emptyIfNull = (value: any): string => {
         return value ? value.toString() : '';
     };

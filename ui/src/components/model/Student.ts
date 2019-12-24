@@ -46,8 +46,8 @@ export class Student {
     }
 
     public isDataFilled(): boolean {
-        return StringUtils.isNotEmpty(this._name)
-            && StringUtils.isNotEmpty(this._surname)
-            && StringUtils.isNotEmpty(this._studentNumber);
+        return StringUtils.isNotBlank(this._name)
+            && StringUtils.isNotBlank(this._surname)
+            && StringUtils.isNotBlank(this._studentNumber);
     }
 }
