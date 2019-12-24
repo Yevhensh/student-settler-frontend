@@ -1,9 +1,9 @@
-import {PaymentDetails} from "../PaymentDetails";
+import {StudentDetails} from "../StudentDetails";
 import Dormitory from "../../model/Dormitory";
 import Room from "../../model/Room";
 
 export interface PaymentState {
-    paymentDetails: PaymentDetails,
+    studentDetails: StudentDetails,
     pricePerMonth: number,
     paymentResponseText: string,
     isSnackbarOpen: boolean,

@@ -1,69 +1,28 @@
-import { Student } from '../model/Student';
-import {StringUtils} from "../../util/StringUtils";
-import Dormitory from "../model/Dormitory";
+import CardDetails from "./CardDetails";
 
 export class PaymentDetails {
-    private _student: Student;
-    private _dormitory: Dormitory;
-    private _roomNumber: string;
-    private _monthsCount: number;
 
-    constructor(student: Student, dormitoryNumber: Dormitory, roomNumber: string, monthsCount: number) {
-        this._student = student;
-        this._dormitory = dormitoryNumber;
-        this._roomNumber = roomNumber;
-        this._monthsCount = monthsCount;
+    private _studentNumber: string;
+    private _cardDetails: CardDetails;
+
+    constructor(studentNumber: string, cardDetails: CardDetails) {
+        this._studentNumber = studentNumber;
+        this._cardDetails = cardDetails;
     }
 
-    public static emptyData() {
-        return new PaymentDetails(Student.emptyData(), null, null, null);
+    get studentNumber(): string {
+        return this._studentNumber;
     }
 
-    public emptyDataIfNull() {
-        this._student.emptyDataIfNull();
-        if (!this.monthsCount) {
-            this.monthsCount = 0;
-        }
-        this.roomNumber = StringUtils.emptyIfNull(this._roomNumber);
+    set studentNumber(value: string) {
+        this._studentNumber = value;
     }
 
-    public isDataFilled(): boolean {
-        return this._student.isDataFilled()
-            && this._dormitory != null
-            && this._roomNumber != null
-            && this._monthsCount != null
+    get cardDetails(): CardDetails {
+        return this._cardDetails;
     }
 
-
-    get student(): Student {
-        return this._student;
-    }
-
-    set student(value: Student) {
-        this._student = value;
-    }
-
-    get dormitory(): Dormitory {
-        return this._dormitory;
-    }
-
-    set dormitory(value: Dormitory) {
-        this._dormitory = value;
-    }
-
-    get roomNumber(): string {
-        return this._roomNumber;
-    }
-
-    set roomNumber(value: string) {
-        this._roomNumber = value;
-    }
-
-    get monthsCount(): number {
-        return this._monthsCount;
-    }
-
-    set monthsCount(value: number) {
-        this._monthsCount = value;
+    set cardDetails(value: CardDetails) {
+        this._cardDetails = value;
     }
 }

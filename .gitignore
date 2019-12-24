@@ -23,6 +23,7 @@ target
 .scala_dependencies
 .worksheet
 ui/node_modules
+ui/build
 
 /node_modules
 /.pnp
