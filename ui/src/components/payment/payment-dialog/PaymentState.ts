@@ -4,7 +4,6 @@ import Room from "../../model/Room";
 
 export interface PaymentState {
     paymentDetails: PaymentDetails,
-    pricePerMonth: number,
     paymentResponseText: string,
     isSnackbarOpen: boolean,
     isStudentPresent: boolean,

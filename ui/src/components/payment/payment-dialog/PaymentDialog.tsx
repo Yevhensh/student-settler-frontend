@@ -48,7 +48,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     private static formEmptyData(): PaymentState {
         return {
             paymentDetails: PaymentDetails.emptyData(),
-            pricePerMonth: null,
             paymentResponseText: '',
             isSnackbarOpen: false,
             isStudentPresent: true,
@@ -150,6 +149,9 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private populateRooms = async () => {
         const dormitory = this.state.paymentDetails.dormitory;
+        if (!ObjectUtils.checkNotNull(dormitory)) {
+            return [];
+        }
         const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
         this.setState({
             rooms: rooms
@@ -164,22 +166,17 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         });
     };
 
-    private changeDormitorySelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    private changeDormitorySelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
         event.persist();
         this.setState((state) => {
             state.paymentDetails.dormitory = this.state.dormitories.find(dormitory => dormitory.number.toString() == event.target.textContent);
+            if (!ObjectUtils.checkNotNull(state.paymentDetails.dormitory)) {
+                state = {...state, rooms: []};
+                state.paymentDetails.roomNumber = "";
+            }
             return state;
         }, () => {
-            if (ObjectUtils.checkNotNull(this.state.paymentDetails.dormitory)) {
-                this.populateRooms();
-                this.changePrice(this.state.paymentDetails.dormitory.pricePerMonth.price);
-            } else {
-                this.setState((state) => {
-                    state = {...state, rooms: []};
-                    state.paymentDetails.roomNumber = "";
-                    return state;
-                })
-            }
+            this.populateRooms();
         });
     };
 
@@ -207,12 +204,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
     };
 
-    private changePrice = (price: number) => {
-        this.setState({
-            pricePerMonth: price
-        })
-    };
-
     private displayPaymentSnackbar = () => {
         return (
             <PaymentSnackbar
@@ -227,7 +218,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         return (
             <TextField
                 {...params}
-                value={value}
                 label={label}
                 margin="normal"
                 fullWidth={true}
@@ -264,6 +254,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
             <Autocomplete
                 id={autocompleteId}
                 options={options}
+                inputValue={autocompleteValue}
                 getOptionLabel={getOptionLabel}
                 onChange={changeHandler}
                 renderInput={params => this.formAutoselectContent(params, autoselectLabel, autocompleteValue)}
@@ -272,17 +263,19 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
     };
 
     private calculatePrice = () => {
-        if (!ObjectUtils.checkNotNull(this.state.pricePerMonth)) {
+        const dormitory = this.state.paymentDetails.dormitory;
+        if (!ObjectUtils.checkNotNull(dormitory)) {
             return "";
         }
+        const pricePerMonth = dormitory.pricePerMonth.price;
         const monthsCount = this.state.paymentDetails.monthsCount;
-        return (monthsCount ? monthsCount : 1) * this.state.pricePerMonth;
+        return (monthsCount ? monthsCount : 1) * pricePerMonth;
     };
 
     render(): JSX.Element {
-        const paymentDetailsCopy: PaymentDetails = Object.create(this.state.paymentDetails);
-        paymentDetailsCopy.emptyDataIfNull();
-        const {student, dormitory, roomNumber, monthsCount} = paymentDetailsCopy;
+        const paymentDetails: PaymentDetails = this.state.paymentDetails;
+        paymentDetails.emptyDataIfNull();
+        const {student, dormitory, roomNumber, monthsCount} = paymentDetails;
         const {name, surname, studentNumber} = student;
         const textFields = this.formTextFields(name, surname, studentNumber, dormitory, roomNumber, monthsCount);
         return (
