@@ -1,11 +1,13 @@
 
 export default class Room {
+    
+    private _id: string;
+    private _title: string;
+    
     constructor(id: string, title: string) {
         this._id = id;
         this._title = title;
     }
-
-    private _id: string;
 
     get id(): string {
         return this._id;
@@ -14,8 +16,6 @@ export default class Room {
     set id(value: string) {
         this._id = value;
     }
-
-    private _title: string;
 
     get title(): string {
         return this._title;
