@@ -142,7 +142,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         }
         const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
         this.setState({
-            rooms: rooms
+            rooms: rooms.sort((r1, r2) => r1.title.localeCompare(r2.title))
         });
     };
 
