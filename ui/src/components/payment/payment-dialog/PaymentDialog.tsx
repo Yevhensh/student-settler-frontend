@@ -140,9 +140,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         if (!ObjectUtils.checkNotNull(dormitory)) {
             return [];
         }
+
         const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
-        this.setState({
-            rooms: rooms.sort((r1, r2) => r1.title.localeCompare(r2.title))
+        this.setState((prevState) => {
+            prevState = { ...prevState, rooms: rooms.sort((r1, r2) => r1.title.localeCompare(r2.title))};
+            prevState.studentDetails.roomNumber = "";
+
+            return prevState;
         });
     };
 
