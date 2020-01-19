@@ -49,7 +49,7 @@ export interface PaymentProps {
     className?: string;
     message?: string;
     onClose?: () => void;
-    variant: keyof typeof variantIcon;
+    variant: string;
 }
 
 export const PaymentSnackbarContentWrapper = (props: PaymentProps) => {
