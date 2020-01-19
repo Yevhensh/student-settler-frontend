@@ -3,12 +3,18 @@ import {BackendHost} from "../../util/BackendHost";
 import {PaymentResponse} from "../payment/PaymentResponse";
 import {PaymentDetails} from "../payment/PaymentDetails";
 
+interface CreditCard {
+    number: string;
+    ownerName: string;
+    expirationMonth: string;
+    expirationYear: string;
+    cvv: string;
+}
+
 interface PaymentDetailsPayload {
     studentNumber: string;
-    cardNumber: string;
-    ownerName: string;
-    expirationDate: string;
-    cvc: string;
+    price: number;
+    creditCard: CreditCard;
 }
 
 export class PayService {
@@ -29,10 +35,14 @@ export class PayService {
         const {cardNumber, ownerName, expirationDate, cvc} = cardDetails;
         const paymentPayload: PaymentDetailsPayload = {
             studentNumber: studentNumber,
-            cardNumber: cardNumber,
-            ownerName: ownerName,
-            expirationDate: expirationDate,
-            cvc: cvc
+            price: payment.price,
+            creditCard: {
+                number: cardNumber,
+                ownerName: ownerName,
+                expirationMonth: expirationDate.substr(0, 2),
+                expirationYear: expirationDate.substr(2, 4),
+                cvv: cvc
+            }
         };
         return paymentPayload;
     };

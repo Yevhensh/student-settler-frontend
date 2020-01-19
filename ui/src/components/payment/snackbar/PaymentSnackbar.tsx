@@ -4,6 +4,7 @@ import {PaymentSnackbarContentWrapper} from "./PaymentSnackbarContentWrapper";
 
 interface Props {
     isSnackbarOpen: boolean,
+    severity: string,
     changeOpen: (b: boolean) => void,
     responseText: string
 }
@@ -36,7 +37,7 @@ export default class PaymentSnackbar extends Component<Props, {}> {
                 >
                     <PaymentSnackbarContentWrapper
                         onClose={this.handleClose}
-                        variant="success"
+                        variant={this.props.severity}
                         message={this.props.responseText}
                     />
                 </Snackbar>

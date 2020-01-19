@@ -15,6 +15,7 @@ import PaymentSnackbar from "../snackbar/PaymentSnackbar";
 import CardDetails from "../CardDetails";
 import {PaymentDetails} from "../PaymentDetails";
 import {LocationDescriptorObject} from "history";
+import {PaymentResponse} from "../PaymentResponse";
 
 interface PaymentCardDetailsProps {
     location: LocationDescriptorObject
@@ -22,11 +23,13 @@ interface PaymentCardDetailsProps {
 
 interface PaymentCardDetailsState {
     studentDetails: StudentDetails,
+    price: number,
     cardDetails: CardDetails,
     isOpen: boolean,
     focus: string,
     paymentResponseMessage: string,
     isSnackbarOpen: boolean,
+    snackbarSeverity: string,
     isPaymentSuccessful: boolean,
     goBackButtonName: string,
     goBackButtonColor: string,
@@ -41,12 +44,14 @@ export default class PaymentCardDetails extends Component<PaymentCardDetailsProp
         this.payService = new PayService();
 
         this.state = {
-            studentDetails: props.location.state,
+            studentDetails: props.location.state.studentDetails,
+            price: props.location.state.price,
             cardDetails: CardDetails.emptyData(),
             isOpen: true,
             focus: '',
             paymentResponseMessage: '',
             isSnackbarOpen: false,
+            snackbarSeverity: '',
             isPaymentSuccessful: false,
             goBackButtonName: 'Cancel',
             goBackButtonColor: 'secondary',
@@ -136,15 +141,29 @@ export default class PaymentCardDetails extends Component<PaymentCardDetailsProp
 
     private doPayAndDisplayResponse = async () => {
         const {cardDetails, studentDetails} = this.state;
-        const paymentDetails = new PaymentDetails(studentDetails.student.studentNumber, cardDetails);
+        const paymentDetails = new PaymentDetails(studentDetails.student.studentNumber, this.state.price,
+            cardDetails);
         const paymentResponse = await this.payService.payForDormitory(paymentDetails);
+        this.setPaymentResponseState(paymentResponse);
+        this.setGoBackButtonDataIfPaymentSuccessful(paymentResponse);
+    };
+
+    private setPaymentResponseState = (paymentResponse: PaymentResponse) => {
         this.setState({
             paymentResponseMessage: paymentResponse.message,
             isSnackbarOpen: true,
-            isPaymentSuccessful: true,
-            goBackButtonName: 'Go Home',
-            goBackButtonColor: 'primary'
+            snackbarSeverity: paymentResponse.successful ? 'success' : 'error',
+            isPaymentSuccessful: paymentResponse.successful
         });
+    };
+
+    private setGoBackButtonDataIfPaymentSuccessful = (paymentResponse: PaymentResponse) => {
+        if (paymentResponse.successful) {
+            this.setState({
+                goBackButtonName: 'Go Home',
+                goBackButtonColor: 'primary'
+            });
+        }
     };
 
     private displayPaymentSnackbar = () => {
@@ -153,6 +172,7 @@ export default class PaymentCardDetails extends Component<PaymentCardDetailsProp
                 isSnackbarOpen={this.state.isSnackbarOpen}
                 changeOpen={this.changeSnackbarOpen}
                 responseText={this.state.paymentResponseMessage}
+                severity={this.state.snackbarSeverity}
             />
         );
     };

@@ -1,4 +1,5 @@
 
 export interface PaymentResponse {
-    message: string
+    message: string;
+    successful: boolean;
 }

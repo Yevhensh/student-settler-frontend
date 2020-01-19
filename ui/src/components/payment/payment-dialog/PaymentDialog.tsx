@@ -11,7 +11,6 @@ import {dialogStyles} from "../../../styles/Styles";
 import {PayService} from "../../model/PayService";
 import {StudentService} from "../../model/StudentService";
 import {StudentDetails} from "../StudentDetails";
-import PaymentSnackbar from "../snackbar/PaymentSnackbar";
 import {StringUtils} from '../../../util/StringUtils';
 import {ValidateDTO} from '../../model/ValidateDTO';
 import {PaymentState} from "./PaymentState";
@@ -143,7 +142,7 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
         const rooms = await this.dormitoryService.fetchDormitoryRooms(dormitory.id);
         this.setState((prevState) => {
-            prevState = { ...prevState, rooms: rooms.sort((r1, r2) => r1.title.localeCompare(r2.title))};
+            prevState = {...prevState, rooms: rooms.sort((r1, r2) => r1.title.localeCompare(r2.title))};
             prevState.studentDetails.roomNumber = "";
 
             return prevState;
@@ -190,20 +189,6 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
 
     private parseNumberFromAutoselect = (event: React.ChangeEvent<HTMLInputElement>) => {
         return StringUtils.isNotEmpty(event.target.textContent) ? Number.parseInt(event.target.textContent) : null;
-    };
-
-    private paymentRepsonse = () => {
-        return this.state.paymentResponseText !== "" ? this.displayPaymentSnackbar() : <div/>;
-    };
-
-    private displayPaymentSnackbar = () => {
-        return (
-            <PaymentSnackbar
-                isSnackbarOpen={this.state.isSnackbarOpen}
-                changeOpen={this.changeSnackbarOpen}
-                responseText={this.state.paymentResponseText}
-            />
-        );
     };
 
     private formAutoselectContent = (params, label: string, value: string) => {
@@ -264,6 +249,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
         return (monthsCount ? monthsCount : 1) * pricePerMonth;
     };
 
+    private formInputForPaymentCardPage = () => {
+        return {
+            studentDetails: this.state.studentDetails,
+            price: this.calculatePrice()
+        }
+    };
+
     render(): JSX.Element {
         const studentDetailsCopy: StudentDetails = this.state.studentDetails;
         studentDetailsCopy.emptyDataIfNull();
@@ -296,14 +288,13 @@ export default class PaymentDialog extends Component<PaymentProps, PaymentState>
                             link="/payment/card-details"
                             color="primary"
                             buttonName="Confirm"
-                            state={this.state.studentDetails}
+                            state={this.formInputForPaymentCardPage()}
                         />
                         <Button onClick={this.closeModal} color="secondary">
                             Cancel
                         </Button>
                     </DialogActions>
                 </Dialog>
-                {this.paymentRepsonse()}
             </div>
         );
     }
